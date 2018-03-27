@@ -1,0 +1,65 @@
+PROJEKT:
+- Projekt komunikacji i synchronizacji na koncepcji monitora
+- Monitor definiować w środowisku rozproszonym
+1) mechanizm trybu wyłącznego
+2) budzenie/uśpienie wątków
+3) mechanizm zmiennych warunkowych
+
+tak żeby można było stworzyć przykładowo klasę Buffer,
+Mój_Monitor to moja klasa:
+
+class Buffer : public Mój_Monitor {
+protected:
+    conditional c1, c2;
+public:
+    void put() {
+        lock();
+        ....
+        unlock()
+    }
+}
+
+mogę powiedzieć profesorowi, że w Monitorze jest taka metoda lock() i unlock(), której trzeba użyć w put().
+Albo np. żeby w pucie utworzyć obiekt, który jest niepotrzebny ogółem, ale który ma automatyczny kontruktor lub destruktor, który robi potrzebne rzeczy.
+
+c1, c2 - jesli wymagają parametru do stworzenia to też można powiedzieć
+
+pvm, !mpi, 0mq - komunikacja rozproszona, może być coś innego
+
+centralny dostęp - już gorzej
+
+przy zmianiach komputery muszą przesyłać stan buffera
+
+może być serwer komunikacyjny? chyba chodzi o to, że do komunikacji może być ale do przetrzymywania centralnie danych już niepotrzebny
+
+-------
+
+Projekt:
+class MutexWrapper {
+    private:
+        Mutex mtx;
+    public:
+        MutexWrapper(Mutex &m):mtx(m) {
+            mtx.lock();
+        }
+        ~MutexWrapper() {
+            mtx.unlock();
+        }
+}
+
+w jakiejś innej klasie metoda put:
+void put() {
+    MutexWrapper w(nazwa_mutexa);   // konstruktor
+    ...
+    // na końcu metody uruchamia  się destruktor (więc nie może być to klasa static)
+}
+
+np w momencie startu może być jakiś jeden serwer centralny. Ale nie na dłuższą metę, nie ma służyć do synchronizacji.
+dobry deal - statyczna konfiguracja w pliku do wykorzystania na początku (jakies numery portów, potrzebne do inicjalizacji)
+dynamiczne dołączanie nie jest wymagane. czyli grupa procesów jest statyczna np. w pliku konfiguracyjnym
+
+różne rozwiązania:
+1. algorytmy przy zmianie rozgłaszanie z potwierdzeniem
+2. rozwiązanie z tokenem
+docenione: jeśli wątek wyjdzie z waita to zeby miał pierwszeństwo
+
