@@ -5,15 +5,15 @@
 
 class MutexWrapper {
 private:
-    Mutex mtx;
+    Mutex d_mutex;
 
 public:
-    explicit MutexWrapper(Mutex &m) : mtx(m) {
-        mtx.lock();
+    explicit MutexWrapper(Mutex &m) : d_mutex(m) {
+        d_mutex.lock();
     }
 
     ~MutexWrapper() {
-        mtx.unlock();
+        d_mutex.unlock();
     }
 };
 

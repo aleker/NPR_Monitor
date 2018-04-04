@@ -37,13 +37,13 @@ może być serwer komunikacyjny? chyba chodzi o to, że do komunikacji może by�
 Projekt:
 class MutexWrapper {
     private:
-        Mutex mtx;
+        Mutex d_mutex;
     public:
-        MutexWrapper(Mutex &m):mtx(m) {
-            mtx.lock();
+        MutexWrapper(Mutex &m):d_mutex(m) {
+            d_mutex.lock();
         }
         ~MutexWrapper() {
-            mtx.unlock();
+            d_mutex.unlock();
         }
 }
 
@@ -59,7 +59,54 @@ dobry deal - statyczna konfiguracja w pliku do wykorzystania na początku (jakie
 dynamiczne dołączanie nie jest wymagane. czyli grupa procesów jest statyczna np. w pliku konfiguracyjnym
 
 różne rozwiązania:
-1. algorytmy przy zmianie rozgłaszanie z potwierdzeniem
-2. rozwiązanie z tokenem
+1. algorytmy przy zmianie rozgłaszanie z potwierdzeniem (np ricard-agravala)
+2. rozwiązanie z tokenem np. https://en.wikipedia.org/wiki/Suzuki%E2%80%93Kasami_algorithm
 docenione: jeśli wątek wyjdzie z waita to zeby miał pierwszeństwo
 
+Uruchamianie:
+
+Jeżeli chcesz mieć protipa jak debugowac programy w MPI to Ci sprzedam taki sposób który
+sobie wypracowałem robiąc program na PRy z Danileckim
+w mainie programu jakoś na początku (przed częscią gdzie zaczynasz uruchamiac wątki i
+tak dalej) deklarujesz zmienną bool debug = true
+i dalej while (debug);
+co powoduje ze program bedzie czekal na tej instrukcji w nieskonczonosc
+budujesz ten program i odpalasz go przez mpirun
+np uruchamiając z opcją 4 procesów mpirun -np 4
+teraz w CLionie masz taka opcje Run -> Attach to local process czy jakoś tak
+bedziesz musiała się tak podłączyć 4 razy, bo tyle procesów MPI uruchomiłaś
+i potem otworzą Ci sie 4 okna debugowania w clionie
+takie jak zwykłe debugowanie
+i wtedy 4 razy zmieniasz w debuggerze wartość zmiennej debug na false i puszczasz
+każdy proces dalej (F9)
+upierdliwe ale działa
+
+Opis Krzysia
+Trzeba napisać mechanizm (Darek proponował klasę, którą on sobie będzie mógł rozszerzyć i napisać z
+jej użyciem jakiś problem wymagający synchronizacji np producent-konsument) który będzie się zachowywac
+jak typowy monitor, tylko działający w środowisku rozproszonym. Czyli jak wejdziesz w jedną z funkcji
+(zwanych też wejściami) monitora, to do pozostałych funkcji monitora nie da się wejść dopóki ta
+wykonywana zostanie zakończona. Jeśli chodzi o mutexy to tylko to trzeba zagwarantować - mutex na
+poziomie całej metody (jak słowo synchronized w definicji funkcji w Javie). Musisz też udostępnić
+ mechanizm zmiennych warunkowych, żeby proces który wejdzie do funkcji monitora i stwierdzi że nie
+ może kontynuować, mógł pozwolić innym procesom działać na monitorze aż nie zostanie obudzony.
+ Trzecią i ostatnią rzeczą jaką musisz zapewnić jest synchronizacja danych miedzy procesami (np
+ w przypadku producenta-konsumenta będziesz chciał synchronizować zawartośc bufora pomędzy procesami,
+  ale ma to działać dla dowolnego problemu).
+  std::thread
+  std::mutex
+  std::condition_variable
+  mpirun -np 4 a.out
+
+  http://en.cppreference.com/w/cpp/thread/condition_variable
+    https://developers.google.com/protocol-buffers/docs/cpptutorial
+
+TL;DR: Masz zapewnić w możliwie transparentny sposób i wygodny dla programisty w użyciu:
+1) Synchronizację dostępu na poziomie metody (zajęcie jednej metody monitora blokuje możliwość
+zajmowania wszystkich pozostałych)
+2) Mechanizm zmiennych warunkowych
+3) Synchronizację danych
+
+Wszystko ma działać w środowisku rozproszonym.
+Jak to zrobisz oraz jakie mechanizmy komunikacji czy algorytmy rozproszone wykorzystasz do
+zagwarantowania tego nie są narzucone.
