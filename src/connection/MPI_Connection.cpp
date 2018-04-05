@@ -19,12 +19,11 @@ MPI_Connection::~MPI_Connection() {
     MPI_Finalize();
 }
 
-int MPI_Connection::createConnection(int argc, char **argv) {
+void MPI_Connection::createConnection(int argc, char **argv) {
     int provided = 0;
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
     if (provided != MPI_THREAD_MULTIPLE) {
         std::cout << "No multiple thread support!" << std::endl;
-        return -1;
+        throw;
     }
-    return 0;
 }

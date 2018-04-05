@@ -5,7 +5,7 @@
 class ConnectionManager {
 protected:
     int id = 0;
-    virtual int createConnection(int argc, char **argv) = 0;
+    virtual void createConnection(int argc, char **argv) = 0;
 
 public:
     ConnectionManager() = default;

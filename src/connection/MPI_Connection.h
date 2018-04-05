@@ -8,7 +8,7 @@ class MPI_Connection : public ConnectionManager {
 private:
 protected:
     int mpiClientsCount;
-    int createConnection(int argc, char **argv) override;
+    void createConnection(int argc, char **argv) override;
 
 public:
     MPI_Connection(int argc, char *argv[]);
