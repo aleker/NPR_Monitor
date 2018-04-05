@@ -5,14 +5,14 @@
 
 
 int main(int argc, char *argv[]) {
-    MPI_Connection connection(argc, argv);
-    Test test(&connection);
+    MPI_Connection* connection = new MPI_Connection(argc, argv);
+    Test test(connection);
 
-    int loopsCount = 4;
+    int loopsCount = 3;
     while(loopsCount > 0) {
         test.increment();
-        sleep(2);
-        std::cout << "Id: " << connection.getId() << ", test= " << test.getConnectionId() << std::endl;
+        sleep(1);
+        std::cout << "Id: " << connection->getId() << ", test= " << test.getConnectionId() << std::endl;
         loopsCount--;
     }
 

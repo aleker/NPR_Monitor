@@ -1,19 +1,18 @@
 #ifndef NPR_MONITOR_MPI_CONNECTION_H
 #define NPR_MONITOR_MPI_CONNECTION_H
 
+#include "ConnectionManager.h"
 
-class MPI_Connection {
+
+class MPI_Connection : public ConnectionManager {
 private:
-    int id;
+protected:
     int mpiClientsCount;
-
-    int createConnection(int argc, char *argv[]);
+    int createConnection(int argc, char **argv) override;
 
 public:
     MPI_Connection(int argc, char *argv[]);
-    ~MPI_Connection();
-
-    int getId() const;
+    ~MPI_Connection() override;
     int getMpiClientsCount() const;
 };
 

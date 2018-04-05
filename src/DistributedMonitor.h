@@ -7,12 +7,14 @@
 
 class DistributedMonitor {
 protected:
-    MPI_Connection* connectionManager;
+    ConnectionManager* connectionManager;
 
 public:
-    explicit DistributedMonitor(MPI_Connection* connectionManager) {
+    explicit DistributedMonitor(ConnectionManager* connectionManager) {
         this->connectionManager = connectionManager;
     }
+
+    virtual ~DistributedMonitor();
 
     int getConnectionId();
 };

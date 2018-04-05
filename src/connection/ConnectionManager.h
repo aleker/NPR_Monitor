@@ -1,15 +1,18 @@
 #ifndef NPR_MONITOR_CONNECTIONMANAGER_H
 #define NPR_MONITOR_CONNECTIONMANAGER_H
 
+
 class ConnectionManager {
 protected:
-    int id;
+    int id = 0;
+    virtual int createConnection(int argc, char **argv) = 0;
 
-    virtual int createConnection() = 0;
 public:
-    int getId() const {
-        return id;
-    }
+    ConnectionManager() = default;
+    virtual ~ConnectionManager() = default;
+    virtual int getId() const {
+        return this->id;
+    };
 };
 
 

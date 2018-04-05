@@ -10,7 +10,7 @@ private:
     Mutex* d_mutex;
 
 public:
-    explicit Test(MPI_Connection* connectionManager);
+    explicit Test(ConnectionManager* connectionManager);
     void increment();
     int getProtectedValue();
 

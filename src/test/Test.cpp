@@ -15,7 +15,7 @@ int Test::getProtectedValue() {
     return value;
 }
 
-Test::Test(MPI_Connection *connectionManager) : DistributedMonitor(connectionManager) {
+Test::Test(ConnectionManager *connectionManager) : DistributedMonitor(connectionManager) {
     this->d_mutex = new Mutex();
 }
 
