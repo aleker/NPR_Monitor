@@ -1,15 +1,18 @@
 #ifndef NPR_MONITOR_CONNECTIONMANAGER_H
 #define NPR_MONITOR_CONNECTIONMANAGER_H
 
-#include <mpi.h>
-
 class ConnectionManager {
-private:
+protected:
     int id;
-    int mpiClientsCount;
+
+    virtual int createConnection() = 0;
 public:
-    ConnectionManager(int argc, char *argv[]);
+    int getId() const {
+        return id;
+    }
 };
+
+
 
 
 #endif //NPR_MONITOR_CONNECTIONMANAGER_H

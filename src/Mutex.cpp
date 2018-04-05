@@ -10,6 +10,6 @@ void Mutex::unlock() {
     // TODO powiadom innych że wolne?
 }
 
-std::mutex &Mutex::getMutex() {
-    return mutex;
+std::mutex *Mutex::getMutex() {
+    return &this->mutex;
 }

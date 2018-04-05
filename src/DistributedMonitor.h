@@ -2,19 +2,19 @@
 #define NPR_MONITOR_DISTRIBUTEDMONITOR_H
 
 #include<cstring>
+#include "connection/MPI_Connection.h"
 
-#include "Mutex.h"
-
-using namespace std;
 
 class DistributedMonitor {
 protected:
-    Mutex d_mutex;
-
+    MPI_Connection* connectionManager;
 
 public:
+    explicit DistributedMonitor(MPI_Connection* connectionManager) {
+        this->connectionManager = connectionManager;
+    }
 
-
+    int getConnectionId();
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H

@@ -10,8 +10,8 @@ private:
 public:
     void lock();
     void unlock();
+    std::mutex* getMutex();
 
-    std::mutex &getMutex();
 
 };
 

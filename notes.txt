@@ -86,7 +86,7 @@ Trzeba napisać mechanizm (Darek proponował klasę, którą on sobie będzie m�
 jej użyciem jakiś problem wymagający synchronizacji np producent-konsument) który będzie się zachowywac
 jak typowy monitor, tylko działający w środowisku rozproszonym. Czyli jak wejdziesz w jedną z funkcji
 (zwanych też wejściami) monitora, to do pozostałych funkcji monitora nie da się wejść dopóki ta
-wykonywana zostanie zakończona. Jeśli chodzi o mutexy to tylko to trzeba zagwarantować - mutex na
+wykonywana zostanie zakończona. Jeśli chodzi o mutexy to tylko to trzeba zagwarantować - g_mutex na
 poziomie całej metody (jak słowo synchronized w definicji funkcji w Javie). Musisz też udostępnić
  mechanizm zmiennych warunkowych, żeby proces który wejdzie do funkcji monitora i stwierdzi że nie
  może kontynuować, mógł pozwolić innym procesom działać na monitorze aż nie zostanie obudzony.
@@ -94,7 +94,7 @@ poziomie całej metody (jak słowo synchronized w definicji funkcji w Javie). Mu
  w przypadku producenta-konsumenta będziesz chciał synchronizować zawartośc bufora pomędzy procesami,
   ale ma to działać dla dowolnego problemu).
   std::thread
-  std::mutex
+  std::g_mutex
   std::condition_variable
   mpirun -np 4 a.out
 
@@ -110,3 +110,7 @@ zajmowania wszystkich pozostałych)
 Wszystko ma działać w środowisku rozproszonym.
 Jak to zrobisz oraz jakie mechanizmy komunikacji czy algorytmy rozproszone wykorzystasz do
 zagwarantowania tego nie są narzucone.
+
+openmpi savethread flag
+
+w konstruktorze zmiennej warunkowej ma być g_mutex

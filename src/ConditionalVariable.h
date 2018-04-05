@@ -7,11 +7,14 @@
 class ConditionalVariable {
 private:
     std::condition_variable cv;
+    Mutex* g_mutex;
 
 public:
-    void wait(Mutex *mtx);
+    explicit ConditionalVariable(Mutex *mutex) {}
+
+    void wait();
     template< class Predicate >
-    void wait(Mutex *mtx, Predicate condition);
+    void wait(Predicate condition);
     void notifyAll();
 };
 

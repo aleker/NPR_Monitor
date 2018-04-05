@@ -3,19 +3,21 @@
 //
 
 #include "ConditionalVariable.h"
+#include <mutex>
 
-void ConditionalVariable::wait(Mutex *mtx) {
-    // mutex wrapper:
-    std::unique_lock<std::mutex> lk(mtx->getMutex());
+void ConditionalVariable::wait() {
+    // g_mutex wrapper:
+    std::mutex* mtx = this->g_mutex->getMutex();
+    std::unique_lock<std::mutex> lk(*mtx);
     cv.wait(lk);
 
     // TODO powiadom wszystkich, że masz waita na cv w mtx
 }
 
 template<class Predicate>
-void ConditionalVariable::wait(Mutex *mtx, Predicate condition) {
-    // mutex wrapper:
-    std::unique_lock<std::mutex> lk(mtx->getMutex());
+void ConditionalVariable::wait(Predicate condition) {
+    std::mutex* mtx = this->g_mutex->getMutex();
+    std::unique_lock<std::mutex> lk(*mtx);
     cv.wait(lk, condition);
 
     // TODO powiadom wszystkich, że masz waita na cv w mtx dopóki !condition
@@ -27,3 +29,4 @@ void ConditionalVariable::notifyAll() {
 
     // TODO powiadom wszystkich o cv
 }
+
