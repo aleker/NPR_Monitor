@@ -27,3 +27,9 @@ void MPI_Connection::createConnection(int argc, char **argv) {
         throw;
     }
 }
+
+int MPI_Connection::sendMessage(int recvId, Message* message) {
+    const void* buf = message->serialize();
+    MPI_Send(&buf, sizeof(buf), MPI_BYTE, recvId, message->getMessageType(), MPI_COMM_WORLD);
+}
+

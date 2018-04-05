@@ -2,6 +2,8 @@
 #define NPR_MONITOR_CONNECTIONMANAGER_H
 
 
+#include "../Message.h"
+
 class ConnectionManager {
 protected:
     int id = 0;
@@ -13,6 +15,7 @@ public:
     virtual int getId() const {
         return this->id;
     };
+    virtual int sendMessage(int recvId, Message* message) = 0;
 };
 
 

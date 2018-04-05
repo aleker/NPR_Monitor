@@ -21,6 +21,8 @@ set(SOURCE_FILES
         src/connection/ConnectionManager.h
         src/connection/MPI_Connection.cpp
         src/connection/MPI_Connection.h
+        src/Message.cpp
+        src/Message.h
         )
 
 set(MPI_LIB ~/.openmpi/lib)
