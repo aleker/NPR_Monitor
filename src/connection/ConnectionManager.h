@@ -6,18 +6,20 @@ enum MessageType {
     REPLY
 };
 
+struct MessageHeader {
+    int id;
+    int lamportClock;
+    MessageType state;
+};
+
 class ConnectionManager {
 protected:
-    int id = 0;
-    virtual void createConnection(int argc, char **argv) = 0;
 
 public:
-    ConnectionManager() = default;
     virtual ~ConnectionManager() = default;
-    virtual int getId() const {
-        return this->id;
-    };
-    virtual int sendMessage(int recvId, MessageType type,  const std::string &message) = 0;
+    virtual int getId() = 0;
+    virtual void sendMessage(int recvId, MessageType type, const std::string &message) = 0;
+    virtual std::string receiveMessage() = 0;
 };
 
 

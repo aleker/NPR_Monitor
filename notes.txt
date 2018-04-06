@@ -114,3 +114,5 @@ zagwarantowania tego nie są narzucone.
 openmpi savethread flag
 
 w konstruktorze zmiennej warunkowej ma być g_mutex
+
+//    MultiprocessDebugHelper::setup(15000 + connection->getId());
