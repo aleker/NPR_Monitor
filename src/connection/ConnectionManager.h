@@ -1,8 +1,10 @@
 #ifndef NPR_MONITOR_CONNECTIONMANAGER_H
 #define NPR_MONITOR_CONNECTIONMANAGER_H
 
-
-#include "../Message.h"
+enum MessageType {
+    REQUEST,
+    REPLY
+};
 
 class ConnectionManager {
 protected:
@@ -15,7 +17,7 @@ public:
     virtual int getId() const {
         return this->id;
     };
-    virtual int sendMessage(int recvId, Message* message) = 0;
+    virtual int sendMessage(int recvId, MessageType type,  const std::string &message) = 0;
 };
 
 

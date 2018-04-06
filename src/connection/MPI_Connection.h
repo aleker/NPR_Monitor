@@ -15,7 +15,7 @@ public:
     ~MPI_Connection() override;
     int getMpiClientsCount() const;
 
-    int sendMessage(int recvId, Message* message) override;
+    int sendMessage(int recvId, MessageType type,  const std::string &message) override;
 };
 
 

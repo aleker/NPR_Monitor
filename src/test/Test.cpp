@@ -15,7 +15,7 @@ int Test::getProtectedValue() {
     return value;
 }
 
-Test::Test(ConnectionManager *connectionManager) : DistributedMonitor(connectionManager) {
+Test::Test(std::unique_ptr<ConnectionManager> connectionManager) : DistributedMonitor(std::move(connectionManager)) {
     this->d_mutex = new Mutex();
 }
 

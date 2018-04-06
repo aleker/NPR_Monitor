@@ -3,6 +3,7 @@
 
 #include "../DistributedMonitor.h"
 #include "../Mutex.h"
+#include <memory>
 
 class Test : public DistributedMonitor {
 private:
@@ -10,10 +11,9 @@ private:
     Mutex* d_mutex;
 
 public:
-    explicit Test(ConnectionManager* connectionManager);
+    explicit Test(std::unique_ptr<ConnectionManager> connectionManager);
     void increment();
     int getProtectedValue();
-
 };
 
 #endif //NPR_MONITOR_TEST_H

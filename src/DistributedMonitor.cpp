@@ -5,13 +5,9 @@ int DistributedMonitor::getConnectionId() {
     return this->connectionManager->getId();
 }
 
-DistributedMonitor::~DistributedMonitor() {
-    delete connectionManager;
-}
-
-void DistributedMonitor::sendMessage(int recvId, Message* message) {
+void DistributedMonitor::sendMessage(int recvId, MessageType type, const std::string &message) {
     updateLamportClock();
-    connectionManager->sendMessage(recvId, message);
+    connectionManager->sendMessage(recvId, type, message);
 }
 
 void DistributedMonitor::updateLamportClock() {
@@ -21,3 +17,4 @@ void DistributedMonitor::updateLamportClock() {
 void DistributedMonitor::updateLamportClock(int newValue) {
     this->lamportClock = newValue;
 }
+
