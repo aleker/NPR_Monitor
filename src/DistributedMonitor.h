@@ -26,6 +26,7 @@ public:
     void sendMessage(std::shared_ptr<Message> message);
     void sendMessageOnBroadcast(std::shared_ptr<Message> message);
     int getLamportClock() const;
+
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H

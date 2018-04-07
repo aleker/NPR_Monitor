@@ -3,7 +3,6 @@
 
 #include "../DistributedMonitor.h"
 #include "../Mutex.h"
-#include <memory>
 
 class Test : public DistributedMonitor {
 private:

@@ -1,9 +1,4 @@
 #include <iostream>
-#include <thread>
-
-#include <cstdio>
-#include <iostream>
-
 #include "DistributedMonitor.h"
 
 bool printCommonLog = true;
@@ -71,8 +66,12 @@ void DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message
 /*
  * listen() - function called on listenThread
  */
+
 void DistributedMonitor::listen() {
-    std::cout << "Listen!" << std::endl;
+    while(true) {
+        std::cout << "Listening...." << std::endl;
+        sleep(1);
+    }
 }
 
 

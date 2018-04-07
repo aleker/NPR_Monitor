@@ -3,6 +3,12 @@
 
 #include "Message.h"
 
+enum MessageType {
+    EMPTY,
+    REQUEST,
+    REPLY
+};
+
 const int MAX_MPI_MSG_SIZE = 50;
 
 class MPI_Msg : public Message {

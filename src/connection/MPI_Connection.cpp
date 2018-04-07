@@ -1,5 +1,4 @@
 #include <mpi.h>
-#include <vector>
 
 #include "MPI_Connection.h"
 

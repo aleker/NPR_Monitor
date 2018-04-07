@@ -4,12 +4,6 @@
 #include "ConnectionManager.h"
 #include "MPI_Msg.h"
 
-enum MessageType {
-    EMPTY,
-    REQUEST,
-    REPLY
-};
-
 class MPI_Connection : public ConnectionManager {
 
 private:
