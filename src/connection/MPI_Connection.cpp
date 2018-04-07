@@ -1,6 +1,8 @@
 #include <mpi.h>
 #include <vector>
+
 #include "MPI_Connection.h"
+
 
 
 MPI_Connection::MPI_Connection(int argc, char **argv) {
@@ -41,7 +43,8 @@ void MPI_Connection::sendMessage() {
 }
 
 void MPI_Connection::sendMessage(std::shared_ptr<MPI_Msg> message) {
-    std::string serializedMessage = std::string(); // serializeMessage(message);
+    std::string serializedMessage = std::string();
+    // TODO serializuj!
     MPI_Send(serializedMessage.c_str(),
              sizeof(serializedMessage.c_str()),
              MPI_BYTE,
@@ -62,13 +65,6 @@ std::string MPI_Connection::receiveMessage() {
              &senderStatus);
     // TODO return MPI_Message
     return receivedMessage;
-}
-
-std::string MPI_Connection::serializeMessage(std::shared_ptr<MPI_Msg> message) {
-    std::ostringstream oss;
-    boost::archive::text_oarchive oa(oss);
-    oa << message.get();
-    return oss.str();
 }
 
 

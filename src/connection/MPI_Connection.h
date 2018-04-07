@@ -27,7 +27,6 @@ public:
     void sendMessage() override;
     void sendMessage(std::shared_ptr<MPI_Msg> message);
     std::string receiveMessage() override;
-    std::string serializeMessage(std::shared_ptr<MPI_Msg> message);
 };
 
 

@@ -22,7 +22,6 @@ public:
     virtual ~DistributedMonitor() = default;
     int getConnectionId();
     void sendMessage(std::shared_ptr<Message> message);
-    std::string serializeMessage(std::shared_ptr<Message> message);
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H

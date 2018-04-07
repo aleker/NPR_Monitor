@@ -1,14 +1,9 @@
-//
-// Created by ola on 07.04.18.
-//
-
 #ifndef NPR_MONITOR_MPI_MESSAGE_H
 #define NPR_MONITOR_MPI_MESSAGE_H
 
 #include "Message.h"
 
 const int MAX_MPI_MSG_SIZE = 50;
-
 
 class MPI_Msg : public Message {
 private:
@@ -20,12 +15,13 @@ private:
         archive & sendersId;
     }
 
-    int sendersId;
-    int receiversId;
-    int messageType;
+    int sendersId = 0;
+    int receiversId = 0;
+    int messageType = 0;
 
 public:
-    MPI_Msg(int sendersId, int receiversId, int messageType) :
+    MPI_Msg() = default;
+    MPI_Msg(int sendersId, int receiversId, int messageType) : Message(),
             sendersId(sendersId),
             receiversId(receiversId),
             messageType(messageType) {}
@@ -42,6 +38,7 @@ public:
     }
 
 };
+
 
 
 #endif //NPR_MONITOR_MPI_MESSAGE_H
