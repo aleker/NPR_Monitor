@@ -1,10 +1,34 @@
 #include <iostream>
 #include <thread>
 
+#include <cstdio>
+#include <iostream>
+
 #include "DistributedMonitor.h"
+
+bool printCommonLog = true;
+void setupLogFile(const char* filename) {
+    std::fclose(fopen(filename, "w"));
+    std::freopen(filename, "a+", stdout);
+}
+
+void createCommonLog(int id, std::string message, int clock) {
+    if (printCommonLog) {
+        using namespace std::chrono;
+        milliseconds ms = duration_cast<milliseconds>(
+                system_clock::now().time_since_epoch()
+        );
+        std::cout << std::to_string(ms.count()) << " l:" << clock << " ID: " << id << " " << message << std::endl;
+    }
+}
 
 DistributedMonitor::DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager) :
         connectionManager(std::move(connectionManager)) {
+    std::stringstream filename;
+    filename << "log" << this->getConnectionId() << ".txt";
+    std::cout << "filename= " << filename.str() << "\n";
+    // TODO setup logfile
+    // setupLogFile(filename.str().c_str());
     this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
 
@@ -49,12 +73,6 @@ void DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message
  */
 void DistributedMonitor::listen() {
     std::cout << "Listen!" << std::endl;
-    int kasia = 4;
-    while (kasia > 0) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::cout << "W PROCESIE LISTEN: lamport = " << this->getLamportClock() << "\n";
-        kasia--;
-    }
 }
 
 
