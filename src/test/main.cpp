@@ -19,15 +19,15 @@ int main(int argc, char *argv[]) {
     std::cout << "Id: " << test.getConnectionId() << "Serial: " << serializedMessage << "\n";
     MPI_Msg desMsg;
     desMsg = Message::deserializeMessage<MPI_Msg>(serializedMessage);
-    std::string serializedMessage2 = Message::serializeMessage(desMsg);
+    std::string serializedMessage2 = Message::serializeMessage<MPI_Msg>(desMsg);
     std::cout << "Id: " << test.getConnectionId() << "Serial2: " << serializedMessage << "\n";
     // ---------------------------
-
-    int loopsCount = 2;
+    
+    int loopsCount = 4;
     while(loopsCount > 0) {
-        test.increment();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::cout << "Id: " << test.getConnectionId() << ", test= " << test.getProtectedValue() << "\n";
+        test.updateLamportClock();
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        // std::cout << "Id: " << test.getConnectionId() << ", clock= " << test.getLamportClock() << "\n";
         loopsCount--;
     }
 

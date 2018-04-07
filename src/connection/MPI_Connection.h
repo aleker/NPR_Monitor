@@ -17,16 +17,19 @@ protected:
     int id;
     int mpiClientsCount;
     void createConnection(int argc, char **argv);
-    int getMpiClientsCount() const;
 
 public:
     MPI_Connection(int argc, char *argv[]);
+
     ~MPI_Connection();
 
     int getId() override;
-    void sendMessage() override;
+
+    int getClientsCount() override;
+
     void sendMessage(std::shared_ptr<MPI_Msg> message);
-    std::string receiveMessage() override;
+
+    MPI_Msg receiveMessage();
 };
 
 
