@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection->getId());
 
-    // --TEST MESSAGE SERIALIZATION
+    // TEST MESSAGE SERIALIZATION
     MPI_Msg msg(test.getConnectionId(), 1, MessageType::EMPTY);
     std::string serializedMessage = Message::serializeMessage<MPI_Msg>(msg);
     std::cout << "Id: " << test.getConnectionId() << "Serial: " << serializedMessage << "\n";
@@ -22,12 +22,12 @@ int main(int argc, char *argv[]) {
     std::string serializedMessage2 = Message::serializeMessage<MPI_Msg>(desMsg);
     std::cout << "Id: " << test.getConnectionId() << "Serial2: " << serializedMessage << "\n";
     // ---------------------------
-    
+
+    // TEST MULTITHREADING
     int loopsCount = 4;
     while(loopsCount > 0) {
-        test.updateLamportClock();
+        test.increment();
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        // std::cout << "Id: " << test.getConnectionId() << ", clock= " << test.getLamportClock() << "\n";
         loopsCount--;
     }
 

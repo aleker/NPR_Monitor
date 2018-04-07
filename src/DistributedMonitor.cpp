@@ -5,7 +5,7 @@
 
 DistributedMonitor::DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager) :
         connectionManager(std::move(connectionManager)) {
-    this->listenThread = this->spawn();
+    this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
 
 DistributedMonitor::~DistributedMonitor() {
@@ -16,8 +16,12 @@ int DistributedMonitor::getConnectionId() {
     return this->connectionManager->getId();
 }
 
+int DistributedMonitor::getLamportClock() const {
+    return lamportClock;
+}
+
 void DistributedMonitor::updateLamportClock() {
-    this->lamportClock = this->lamportClock + 1;
+    this->lamportClock++;
 }
 
 void DistributedMonitor::updateLamportClock(int newValue) {
@@ -53,12 +57,7 @@ void DistributedMonitor::listen() {
     }
 }
 
-int DistributedMonitor::getLamportClock() const {
-    return lamportClock;
-}
 
-std::thread DistributedMonitor::spawn() {
-    return std::thread(&DistributedMonitor::listen, this);
-}
+
 
 

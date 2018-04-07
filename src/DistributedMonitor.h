@@ -14,7 +14,7 @@ protected:
     int lamportClock = 0;
     std::thread listenThread;
 
-//    void updateLamportClock();
+    void updateLamportClock();
     void updateLamportClock(int newValue);
     void listen();
 
@@ -26,10 +26,6 @@ public:
     void sendMessage(std::shared_ptr<Message> message);
     void sendMessageOnBroadcast(std::shared_ptr<Message> message);
     int getLamportClock() const;
-
-    void updateLamportClock();
-    std::thread spawn();
-
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H
