@@ -1,6 +1,7 @@
 #include <iostream>
 #include <zconf.h>
 #include <thread>
+#include <vector>
 #include "Test.h"
 #include "../connection/MPI_Connection.h"
 #include "../MultiprocessDebugHelper.h"

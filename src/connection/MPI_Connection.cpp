@@ -1,4 +1,5 @@
 #include <mpi.h>
+#include <vector>
 #include "MPI_Connection.h"
 
 
@@ -9,13 +10,17 @@ MPI_Connection::MPI_Connection(int argc, char **argv) {
     std::cout << "My id: " << this->id << " of " << this->mpiClientsCount << "\n";
 }
 
-int MPI_Connection::getMpiClientsCount() const {
-    return this->mpiClientsCount;
-}
-
 MPI_Connection::~MPI_Connection() {
     printf("Exit! Id: %d.\n", this->id);
     MPI_Finalize();
+}
+
+int MPI_Connection::getId() {
+    return this->id;
+}
+
+int MPI_Connection::getMpiClientsCount() const {
+    return this->mpiClientsCount;
 }
 
 void MPI_Connection::createConnection(int argc, char **argv) {
@@ -27,23 +32,44 @@ void MPI_Connection::createConnection(int argc, char **argv) {
     }
 }
 
-void MPI_Connection::sendMessage(int recvId, MessageType type, const std::string &message) {
-    MPI_Send(message.c_str(), static_cast<int>(message.length()), MPI_BYTE, recvId, type, MPI_COMM_WORLD);
+/*
+ * sendMessage() - send empty message to yourself
+ */
+void MPI_Connection::sendMessage() {
+    std::string message = std::string();
+    MPI_Send(message.c_str(), sizeof(message.c_str()), MPI_BYTE, this->id, MessageType::EMPTY, MPI_COMM_WORLD);
 }
 
-int MPI_Connection::getId() {
-    return this->id;
+void MPI_Connection::sendMessage(std::shared_ptr<MPI_Msg> message) {
+    std::string serializedMessage = std::string(); // serializeMessage(message);
+    MPI_Send(serializedMessage.c_str(),
+             sizeof(serializedMessage.c_str()),
+             MPI_BYTE,
+             message->getReceiversId(),
+             message->getMessageType(),
+             MPI_COMM_WORLD);
 }
 
 std::string MPI_Connection::receiveMessage() {
     std::string receivedMessage;
     MPI_Status senderStatus;
-    MPI_Recv(&receivedMessage, 50, MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &senderStatus);
+    MPI_Recv(&receivedMessage,
+             MAX_MPI_MSG_SIZE,
+             MPI_BYTE,
+             MPI_ANY_SOURCE,
+             MPI_ANY_TAG,
+             MPI_COMM_WORLD,
+             &senderStatus);
+    // TODO return MPI_Message
+    return receivedMessage;
 }
 
-std::string MPI_Connection::receiveMessage(MessageType type) {
-    std::string receivedMessage;
-    MPI_Status senderStatus;
-    MPI_Recv(&receivedMessage, 50, MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &senderStatus);
+std::string MPI_Connection::serializeMessage(std::shared_ptr<MPI_Msg> message) {
+    std::ostringstream oss;
+    boost::archive::text_oarchive oa(oss);
+    oa << message.get();
+    return oss.str();
 }
+
+
 

@@ -4,6 +4,7 @@
 #include <cstring>
 #include <memory>
 #include "connection/MPI_Connection.h"
+#include "connection/MPI_Msg.h"
 
 
 class DistributedMonitor {
@@ -20,7 +21,8 @@ public:
 
     virtual ~DistributedMonitor() = default;
     int getConnectionId();
-    void sendMessage(int recvId, MessageType type, const std::string &message);
+    void sendMessage(std::shared_ptr<Message> message);
+    std::string serializeMessage(std::shared_ptr<Message> message);
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H
