@@ -8,10 +8,16 @@ private:
     std::mutex mutex;
 
 public:
-    void lock();
-    void unlock();
-    std::mutex* getMutex();
+    void lock() {
+        mutex.lock();
+    }
+    void unlock() {
+        mutex.unlock();
+    }
 
+    std::mutex* getMutex(){
+        return &this->mutex;
+    }
 
 };
 

@@ -13,31 +13,32 @@ const int MAX_MPI_MSG_SIZE = 50;
 
 class MPI_Msg : public Message {
 private:
+    /*
+    * When inheriting you have to add serialization mechanism to your class.
+    */
     friend class boost::serialization::access;
-    // TODO serialization not working
     template<class Archive>
     void serialize(Archive &archive, const unsigned int version) {
+        /*
+        * Here you have to call base serialization first
+        */
         archive & boost::serialization::base_object<Message>(*this);
-        archive & sendersId;
+        archive & messageType;
     }
+    /*
+    *
+    */
 
-    int sendersId = 0;
-    int receiversId = 0;
     int messageType = 0;
 
 public:
     MPI_Msg() = default;
-    MPI_Msg(int sendersId, int receiversId, int messageType) : Message(),
-            sendersId(sendersId),
-            receiversId(receiversId),
+    MPI_Msg(int sendersId, int receiversId, int messageType) :
+            Message(sendersId, receiversId, NO_REQUEST_CLOCK),
             messageType(messageType) {}
-    int getSendersId() const {
-        return sendersId;
-    }
-
-    int getReceiversId() const {
-        return receiversId;
-    }
+    MPI_Msg(int sendersId, int receiversId, int messageType, int gotRequestClock) :
+            Message(sendersId, receiversId, gotRequestClock),
+            messageType(messageType) {}
 
     int getMessageType() const {
         return messageType;

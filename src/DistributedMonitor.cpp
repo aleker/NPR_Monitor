@@ -1,6 +1,7 @@
 #include <iostream>
 #include "DistributedMonitor.h"
 
+// TODO setupLogFile
 bool printCommonLog = true;
 void setupLogFile(const char* filename) {
     std::fclose(fopen(filename, "w"));
@@ -22,12 +23,12 @@ DistributedMonitor::DistributedMonitor(std::unique_ptr<ConnectionManager> connec
     std::stringstream filename;
     filename << "log" << this->getConnectionId() << ".txt";
     std::cout << "filename= " << filename.str() << "\n";
-    // TODO setup logfile
     // setupLogFile(filename.str().c_str());
     this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
 
 DistributedMonitor::~DistributedMonitor() {
+    std::cout << "JOIN\n";
     this->listenThread.join();
 }
 
@@ -67,14 +68,46 @@ void DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message
  * listen() - function called on listenThread
  */
 
+// TODO DistributedMonitor.listen()
 void DistributedMonitor::listen() {
-    while(true) {
+    int kasia = 2;
+    while(kasia > 0) {
         std::cout << "Listening...." << std::endl;
-        sleep(1);
+        std::chrono::seconds sec(1);
+        std::this_thread::sleep_for(sec);
+        kasia--;
     }
 }
 
+// TODO DistributedMonitor.lock()
+void DistributedMonitor::lock(std::shared_ptr<Mutex> mtx) {
+    mtx->lock();
+    // cdn
+}
 
+// TODO DistributedMonitor.unlock()
+void DistributedMonitor::unlock(std::shared_ptr<Mutex> mtx) {
+    mtx->unlock();
+    // cdn
+}
 
+// TODO DistributedMonitor.wait()
+void DistributedMonitor::wait(std::shared_ptr<ConditionalVariable> cvar) {
+    cvar->wait();
+    // cdn
 
+}
+
+template<class Predicate>
+void
+DistributedMonitor::wait(std::shared_ptr<ConditionalVariable> cvar, Predicate condition) {
+    cvar->wait(condition);
+    // cdn
+}
+
+// TODO DistributedMonitor.signal()
+void DistributedMonitor::signal(std::shared_ptr<ConditionalVariable> cvar) {
+    cvar->notifyAll();
+    // cdn
+}
 

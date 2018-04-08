@@ -2,7 +2,7 @@
 #define NPR_MONITOR_TEST_H
 
 #include "../DistributedMonitor.h"
-#include "../Mutex.h"
+#include "../mutex/Mutex.h"
 
 class Test : public DistributedMonitor {
 private:

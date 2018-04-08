@@ -43,13 +43,21 @@ void MPI_Connection::sendMessage(std::shared_ptr<MPI_Msg> message) {
 }
 
 MPI_Msg MPI_Connection::receiveMessage() {
+    return receiveMessage(MPI_ANY_TAG, MPI_ANY_SOURCE);
+}
+
+MPI_Msg MPI_Connection::receiveMessage(int tag) {
+    return receiveMessage(tag, MPI_ANY_SOURCE);
+}
+
+MPI_Msg MPI_Connection::receiveMessage(int tag, int receiversId) {
     std::string receivedMessageString;
     MPI_Status senderStatus;
     MPI_Recv(&receivedMessageString,
              MAX_MPI_MSG_SIZE,
              MPI_BYTE,
-             MPI_ANY_SOURCE,
-             MPI_ANY_TAG,
+             receiversId,
+             tag,
              MPI_COMM_WORLD,
              &senderStatus);
     MPI_Msg messageObj = Message::deserializeMessage<MPI_Msg>(receivedMessageString);

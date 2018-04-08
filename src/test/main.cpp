@@ -10,16 +10,6 @@ int main(int argc, char *argv[]) {
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection->getId());
 
-    // TEST MESSAGE SERIALIZATION
-    MPI_Msg msg(test.getConnectionId(), 1, MessageType::EMPTY);
-    std::string serializedMessage = Message::serializeMessage<MPI_Msg>(msg);
-    std::cout << "Id: " << test.getConnectionId() << "Serial: " << serializedMessage << "\n";
-    MPI_Msg desMsg;
-    desMsg = Message::deserializeMessage<MPI_Msg>(serializedMessage);
-    std::string serializedMessage2 = Message::serializeMessage<MPI_Msg>(desMsg);
-    std::cout << "Id: " << test.getConnectionId() << "Serial2: " << serializedMessage << "\n";
-    // ---------------------------
-
     // TEST MULTITHREADING
     int loopsCount = 4;
     while(loopsCount > 0) {

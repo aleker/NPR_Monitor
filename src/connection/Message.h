@@ -4,12 +4,6 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
-//#include <boost/serialization/access.hpp>
-//#include <boost/serialization/string.hpp>
-//#include <boost/serialization/shared_ptr.hpp>
-//#include <boost/smart_ptr/make_shared.hpp>
-
-
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -19,22 +13,42 @@
 #include <sstream>
 #include <boost/archive/text_iarchive.hpp>
 
+const int NO_REQUEST_CLOCK = -1;
+
+
 class Message {
 private:
-    friend class boost::serialization::access;
 
+    friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive &archive, const unsigned int version) {
+
         archive & sendersClock;
+        archive & sendersId;
     }
 
     int sendersClock = 0;
+    int sendersId = 0;
+    int receiversId = 0;
+    int gotRequestClock = NO_REQUEST_CLOCK;        // this message is an answer to
 
 public:
-    Message() : sendersClock() {}
+    Message() = default;
+    Message(int sendersId, int receiversId, int gotRequestClock) :
+            sendersId(sendersId),
+            receiversId(receiversId),
+            gotRequestClock(gotRequestClock){}
 
     int getSendersClock() const {
         return sendersClock;
+    }
+
+    int getSendersId() const {
+        return sendersId;
+    }
+
+    int getReceiversId() const {
+        return receiversId;
     }
 
     void setSendersClock(int sendersClock) {

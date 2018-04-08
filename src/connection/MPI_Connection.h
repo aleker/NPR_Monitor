@@ -14,16 +14,14 @@ protected:
 
 public:
     MPI_Connection(int argc, char *argv[]);
-
     ~MPI_Connection();
 
     int getId() override;
-
     int getClientsCount() override;
-
     void sendMessage(std::shared_ptr<MPI_Msg> message);
-
     MPI_Msg receiveMessage();
+    MPI_Msg receiveMessage(int tag);
+    MPI_Msg receiveMessage(int tag, int receiversId);
 };
 
 

@@ -6,27 +6,44 @@
 #include <thread>
 #include "connection/MPI_Connection.h"
 #include "connection/MPI_Msg.h"
+#include "mutex/Mutex.h"
+#include "mutex/ConditionalVariable.h"
 
 
 class DistributedMonitor {
 protected:
     std::unique_ptr<ConnectionManager> connectionManager;
-    int lamportClock = 0;
     std::thread listenThread;
+    int lamportClock = 0;
 
     void updateLamportClock();
     void updateLamportClock(int newValue);
     void listen();
 
-public:
-
-    explicit DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager);
-    virtual ~DistributedMonitor();
     int getConnectionId();
     void sendMessage(std::shared_ptr<Message> message);
     void sendMessageOnBroadcast(std::shared_ptr<Message> message);
     int getLamportClock() const;
 
+public:
+    explicit DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager);
+    virtual ~DistributedMonitor();
+
+    /*
+    void put() {
+        lock(&m);
+        while (flag == 1)
+            wait(&c, &m);
+        signal(&c);
+        unlock(&m);
+    }
+     */
+    void lock(std::shared_ptr<Mutex> mtx);
+    void unlock(std::shared_ptr<Mutex> mtx);
+    void wait(std::shared_ptr<ConditionalVariable> cvar);
+    template< class Predicate >
+    void wait(std::shared_ptr<ConditionalVariable> cvar, Predicate condition);
+    void signal(std::shared_ptr<ConditionalVariable> cvar);
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H

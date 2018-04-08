@@ -11,13 +11,10 @@ set(SOURCE_FILES
         src/test/main.cpp
         src/DistributedMonitor.cpp
         src/DistributedMonitor.h
-        src/Mutex.cpp
-        src/Mutex.h
-        src/MutexWrapper.h
+        src/mutex/Mutex.h
         src/test/Test.cpp
         src/test/Test.h
-        src/ConditionalVariable.cpp
-        src/ConditionalVariable.h
+        src/mutex/ConditionalVariable.h
         src/connection/ConnectionManager.h
         src/connection/MPI_Connection.cpp
         src/connection/MPI_Connection.h
