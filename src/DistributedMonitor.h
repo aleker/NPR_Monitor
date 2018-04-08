@@ -5,7 +5,6 @@
 #include <memory>
 #include <thread>
 #include "connection/MPI_Connection.h"
-#include "connection/MPI_Msg.h"
 #include "mutex/Mutex.h"
 #include "mutex/ConditionalVariable.h"
 
@@ -15,11 +14,19 @@ protected:
     std::unique_ptr<ConnectionManager> connectionManager;
     std::thread listenThread;
     int lamportClock = 0;
+    std::vector<Message> requestsFromOthers;
+    struct myRequest {
+        int clock;
+        int answerCounter;
+
+        myRequest(int clock, int answerCounter) : clock(clock), answerCounter(answerCounter) {}
+        int decrementCounter() {answerCounter--; return answerCounter;}
+    };
+    std::vector<myRequest> myNotFulfilledRequests;
 
     void updateLamportClock();
     void updateLamportClock(int newValue);
     void listen();
-
     int getConnectionId();
     void sendMessage(std::shared_ptr<Message> message);
     void sendMessageOnBroadcast(std::shared_ptr<Message> message);

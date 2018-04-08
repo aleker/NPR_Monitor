@@ -19,7 +19,6 @@ set(SOURCE_FILES
         src/connection/MPI_Connection.cpp
         src/connection/MPI_Connection.h
         src/connection/Message.h
-        src/connection/MPI_Msg.h
         src/MultiprocessDebugHelper.cpp
         src/MultiprocessDebugHelper.h
         )

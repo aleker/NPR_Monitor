@@ -32,8 +32,8 @@ void MPI_Connection::createConnection(int argc, char **argv) {
     }
 }
 
-void MPI_Connection::sendMessage(std::shared_ptr<MPI_Msg> message) {
-    std::string serializedMessage = Message::serializeMessage<MPI_Msg>(*message.get());
+void MPI_Connection::sendMessage(std::shared_ptr<Message> message) {
+    std::string serializedMessage = Message::serializeMessage<Message>(*message.get());
     MPI_Send(serializedMessage.c_str(),
              sizeof(serializedMessage.c_str()),
              MPI_BYTE,
@@ -42,25 +42,25 @@ void MPI_Connection::sendMessage(std::shared_ptr<MPI_Msg> message) {
              MPI_COMM_WORLD);
 }
 
-MPI_Msg MPI_Connection::receiveMessage() {
+Message MPI_Connection::receiveMessage() {
     return receiveMessage(MPI_ANY_TAG, MPI_ANY_SOURCE);
 }
 
-MPI_Msg MPI_Connection::receiveMessage(int tag) {
+Message MPI_Connection::receiveMessage(int tag) {
     return receiveMessage(tag, MPI_ANY_SOURCE);
 }
 
-MPI_Msg MPI_Connection::receiveMessage(int tag, int receiversId) {
+Message MPI_Connection::receiveMessage(int tag, int receiversId) {
     std::string receivedMessageString;
     MPI_Status senderStatus;
     MPI_Recv(&receivedMessageString,
-             MAX_MPI_MSG_SIZE,
+             MAX_MSG_SIZE,
              MPI_BYTE,
              receiversId,
              tag,
              MPI_COMM_WORLD,
              &senderStatus);
-    MPI_Msg messageObj = Message::deserializeMessage<MPI_Msg>(receivedMessageString);
+    Message messageObj = Message::deserializeMessage<Message>(receivedMessageString);
     return messageObj;
 }
 

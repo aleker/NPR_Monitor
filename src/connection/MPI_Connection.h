@@ -2,7 +2,7 @@
 #define NPR_MONITOR_MPI_CONNECTION_H
 
 #include "ConnectionManager.h"
-#include "MPI_Msg.h"
+#include "Message.h"
 
 class MPI_Connection : public ConnectionManager {
 
@@ -18,10 +18,10 @@ public:
 
     int getId() override;
     int getClientsCount() override;
-    void sendMessage(std::shared_ptr<MPI_Msg> message);
-    MPI_Msg receiveMessage();
-    MPI_Msg receiveMessage(int tag);
-    MPI_Msg receiveMessage(int tag, int receiversId);
+    void sendMessage(std::shared_ptr<Message> message);
+    Message receiveMessage();
+    Message receiveMessage(int tag);
+    Message receiveMessage(int tag, int receiversId);
 };
 
 
