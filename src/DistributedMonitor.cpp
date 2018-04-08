@@ -27,6 +27,22 @@ DistributedMonitor::DistributedMonitor(std::unique_ptr<ConnectionManager> connec
     this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
 
+DistributedMonitor::DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager, int protectedValuesCount) :
+        connectionManager(std::move(connectionManager)) {
+    std::stringstream filename;
+    filename << "log" << this->getConnectionId() << ".txt";
+    std::cout << "filename= " << filename.str() << "\n";
+    // setupLogFile(filename.str().c_str());
+    this->listenThread = std::thread(&DistributedMonitor::listen, this);
+    if (protectedValuesCount < 0) {
+        std::cerr << "Wrong argument value! Must be positive!\n";
+        throw;
+    }
+    for (int i = 0; i < protectedValuesCount; i++) {
+        mutexesVector.push_back(std::make_shared<Mutex>());
+    }
+}
+
 DistributedMonitor::~DistributedMonitor() {
     std::cout << "JOIN\n";
     this->listenThread.join();
@@ -70,23 +86,36 @@ void DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message
 
 // TODO DistributedMonitor.listen()
 void DistributedMonitor::listen() {
-    int kasia = 2;
-    while(kasia > 0) {
-        std::cout << "Listening...." << std::endl;
-        std::chrono::seconds sec(1);
-        std::this_thread::sleep_for(sec);
-        kasia--;
-    }
+//    int kasia = 2;
+//    while(kasia > 0) {
+//        std::cout << "Listening...." << std::endl;
+//        std::chrono::seconds sec(1);
+//        std::this_thread::sleep_for(sec);
+//        kasia--;
+//    }
 }
 
+/*
+ * Mutex managing
+ */
+
+bool DistributedMonitor::checkIfMtxPosAvailable(int mtxPos) {
+    return (mtxPos < this->mutexesVector.size());
+}
+
+
 // TODO DistributedMonitor.lock()
-void DistributedMonitor::lock(std::shared_ptr<Mutex> mtx) {
+void DistributedMonitor::lock(int mtxPos) {
+    if (!checkIfMtxPosAvailable(mtxPos)) return;
+    std::shared_ptr<Mutex> mtx = this->mutexesVector.at(mtxPos);
     mtx->lock();
     // cdn
 }
 
 // TODO DistributedMonitor.unlock()
-void DistributedMonitor::unlock(std::shared_ptr<Mutex> mtx) {
+void DistributedMonitor::unlock(int mtxPos) {
+    if (!checkIfMtxPosAvailable(mtxPos)) return;
+    std::shared_ptr<Mutex> mtx = this->mutexesVector.at(mtxPos);
     mtx->unlock();
     // cdn
 }
@@ -110,3 +139,4 @@ void DistributedMonitor::signal(std::shared_ptr<ConditionalVariable> cvar) {
     cvar->notifyAll();
     // cdn
 }
+

@@ -1,11 +1,11 @@
 #include <iostream>
 
-#include "Test.h"
+#include "TestSharingValues.h"
 #include "../MultiprocessDebugHelper.h"
 
 int main(int argc, char *argv[]) {
     auto connection = std::make_unique<MPI_Connection>(argc, argv);
-    Test test(std::move(connection));
+    TestSharingValues test(std::move(connection));
 
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection->getId());
@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
         std::chrono::seconds sec(2);
         std::this_thread::sleep_for(sec);
         loopsCount--;
+        test.printProtectedValues();
     }
 
     return 0;

@@ -13,6 +13,8 @@ class DistributedMonitor {
 protected:
     std::unique_ptr<ConnectionManager> connectionManager;
     std::thread listenThread;
+    std::vector<std::shared_ptr<Mutex>> mutexesVector;
+    // connection:
     int lamportClock = 0;
     std::vector<Message> requestsFromOthers;
     struct myRequest {
@@ -31,9 +33,11 @@ protected:
     void sendMessage(std::shared_ptr<Message> message);
     void sendMessageOnBroadcast(std::shared_ptr<Message> message);
     int getLamportClock() const;
+    bool checkIfMtxPosAvailable(int mtxPos);
 
 public:
     explicit DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager);
+    DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager, int protectedValuesCount);
     virtual ~DistributedMonitor();
 
     /*
@@ -45,8 +49,8 @@ public:
         unlock(&m);
     }
      */
-    void lock(std::shared_ptr<Mutex> mtx);
-    void unlock(std::shared_ptr<Mutex> mtx);
+    void lock(int mtxPos);
+    void unlock(int mtxPos);
     void wait(std::shared_ptr<ConditionalVariable> cvar);
     template< class Predicate >
     void wait(std::shared_ptr<ConditionalVariable> cvar, Predicate condition);
