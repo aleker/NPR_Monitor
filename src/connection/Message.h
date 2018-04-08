@@ -38,15 +38,16 @@ private:
     */
 
     int sendersId = NOT_SET;
-    int messageType = MessageType::EMPTY;
+    int messageType = MessageType::DATA;
     int receiversId = NOT_SET;
     int gotRequestClock = NOT_SET;
     int sendersClock = NOT_SET;
 
 public:
     enum MessageType {
-        EMPTY,
-        REQUEST_MTX
+        DATA,
+        LOCK_MTX,
+        UNLOCK_MTX
     };
 
     Message() = default;

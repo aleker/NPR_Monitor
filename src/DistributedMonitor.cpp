@@ -25,22 +25,6 @@ DistributedMonitor::DistributedMonitor(std::unique_ptr<ConnectionManager> connec
     this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
 
-DistributedMonitor::DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager, int protectedValuesCount) :
-        connectionManager(std::move(connectionManager)) {
-    std::stringstream filename;
-    filename << "log" << this->getConnectionId() << ".txt";
-    std::cout << "filename= " << filename.str() << "\n";
-    // setupLogFile(filename.str().c_str());
-    this->listenThread = std::thread(&DistributedMonitor::listen, this);
-    if (protectedValuesCount < 0) {
-        std::cerr << "Wrong argument value! Must be positive!\n";
-        throw;
-    }
-    for (int i = 0; i < protectedValuesCount; i++) {
-        mutexesVector.push_back(std::make_shared<Mutex>());
-    }
-}
-
 DistributedMonitor::~DistributedMonitor() {
     std::cout << "JOIN\n";
     this->listenThread.join();
@@ -72,25 +56,29 @@ void DistributedMonitor::sendMessage(std::shared_ptr<Message> message) {
     std::cout << "Message sent!" << std::endl;
 }
 
-void DistributedMonitor::sendSingleMessage(std::shared_ptr<Message> message) {
+void DistributedMonitor::sendSingleMessage(std::shared_ptr<Message> message, bool waitForReply) {
     updateLamportClock();
     message->setSendersClock(this->lamportClock);
-    addMessageToMyNotFulfilledRequestsVector(std::make_shared<Message>(*message), 1);
+    if (waitForReply)
+        addMessageToMyNotFulfilledRequestsVector(std::make_shared<Message>(*message), 1);
     sendMessage(message);
 }
 
-void DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message) {
+int DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply) {
     updateLamportClock();
-    message->setSendersClock(this->lamportClock);
+    int lamportClock = this->lamportClock;
+    message->setSendersClock(lamportClock);
     int myId = connectionManager->getId();
     int clientsCount = connectionManager->getClientsCount();
-    addMessageToMyNotFulfilledRequestsVector(std::make_shared<Message>(*message), (clientsCount-1));
+    if (waitForReply)
+        addMessageToMyNotFulfilledRequestsVector(std::make_shared<Message>(*message), (clientsCount-1));
     for (int i = 0; i < clientsCount; i ++) {
         if (myId != i) {
             message->setReceiversId(i);
             sendMessage(message);
         }
     }
+    return lamportClock;
 }
 
 void DistributedMonitor::addMessageToMyNotFulfilledRequestsVector(std::shared_ptr<Message> message, int counter) {
@@ -108,52 +96,42 @@ void DistributedMonitor::listen() {
 }
 
 /*
- * Mutex managing
+ * Conditional Value managing
  */
 
-bool DistributedMonitor::checkIfMtxPosAvailable(int mtxPos) {
-    return ((unsigned int)mtxPos < this->mutexesVector.size());
-}
 
-
-// TODO DistributedMonitor.d_lock()
-void DistributedMonitor::d_lock(int mtxPos) {
-    if (!checkIfMtxPosAvailable(mtxPos)) return;
-    std::shared_ptr<Mutex> mtx = this->mutexesVector.at(mtxPos);
-    // send request for lock
+void DistributedMonitor::d_lock() {
     std::shared_ptr<Message> msg = std::make_shared<Message>
-            (this->getConnectionId(), Message::MessageType::REQUEST_MTX);
-    this->sendMessageOnBroadcast(msg);
-    // TODO wait for all answers (local wait)
-    mtx->lock();
+            (this->getConnectionId(), Message::MessageType::LOCK_MTX);
+    int lamportClockOfSendMessages = this->sendMessageOnBroadcast(msg, true);
+    d_wait(lamportClockOfSendMessages);
 }
 
-// TODO DistributedMonitor.d_unlock()
-void DistributedMonitor::d_unlock(int mtxPos) {
-    if (!checkIfMtxPosAvailable(mtxPos)) return;
-    std::shared_ptr<Mutex> mtx = this->mutexesVector.at(mtxPos);
-    mtx->unlock();
-    // cdn
+void DistributedMonitor::d_unlock() {
+    std::shared_ptr<Message> msg = std::make_shared<Message>
+            (this->getConnectionId(), Message::MessageType::UNLOCK_MTX);
+    this->sendMessageOnBroadcast(msg, false);
 }
 
-// TODO DistributedMonitor.d_wait()
-void DistributedMonitor::d_wait(std::shared_ptr<ConditionalVariable> cvar) {
-    cvar->wait();
-    // cdn
-
+void DistributedMonitor::d_wait(int messagesLamportClock) {
+    bool condition = false;
+    while (!condition) {
+        condition = true;
+        for (myRequest item : myNotFulfilledRequestsVector) {
+            if (item.clock == messagesLamportClock) {
+                condition = false;
+                break;
+            }
+        }
+        if (!condition) {
+            std::unique_lock<std::mutex> lk(mainMutex);
+            cv.wait(lk);
+        }
+    }
 }
 
-template<class Predicate>
-void
-DistributedMonitor::d_wait(std::shared_ptr<ConditionalVariable> cvar, Predicate condition) {
-    cvar->wait(condition);
-    // cdn
-}
-
-// TODO DistributedMonitor.d_signal()
-void DistributedMonitor::d_signal(std::shared_ptr<ConditionalVariable> cvar) {
-    cvar->notifyAll();
-    // cdn
+void DistributedMonitor::d_signal() {
+    cv.notify_all();
 }
 
 

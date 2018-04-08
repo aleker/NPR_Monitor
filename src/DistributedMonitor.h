@@ -4,42 +4,46 @@
 #include <cstring>
 #include <memory>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #include "connection/MPI_Connection.h"
-#include "mutex/Mutex.h"
-#include "mutex/ConditionalVariable.h"
-
 
 class DistributedMonitor {
-protected:
+private:
     std::unique_ptr<ConnectionManager> connectionManager;
     std::thread listenThread;
-    std::vector<std::shared_ptr<Mutex>> mutexesVector;
-    // connection:
-    int lamportClock = 0;
-    std::vector<Message> requestsFromOthersVector;
+    std::condition_variable cv;
+
+
     struct myRequest {
         int clock;
         int answerCounter;
-
         myRequest(int clock, int answerCounter) : clock(clock), answerCounter(answerCounter) {}
         int decrementCounter() {answerCounter--; return answerCounter;}
     };
     std::vector<myRequest> myNotFulfilledRequestsVector;
+    std::vector<Message> requestsFromOthersVector;
+    int lamportClock = 0;
 
     void updateLamportClock();
     void updateLamportClock(int newValue);
-    int getConnectionId();
     int getLamportClock() const;
+
     void listen();
+
     void addMessageToMyNotFulfilledRequestsVector(std::shared_ptr<Message> message, int counter);
+
     void sendMessage(std::shared_ptr<Message> message);
-    void sendMessageOnBroadcast(std::shared_ptr<Message> message);
-    void sendSingleMessage(std::shared_ptr<Message> message);
-    bool checkIfMtxPosAvailable(int mtxPos);
+    int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply);
+    void sendSingleMessage(std::shared_ptr<Message> message, bool waitForReply);
+
+protected:
+    int getConnectionId();
 
 public:
+    std::mutex mainMutex;
+
     explicit DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager);
-    DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager, int protectedValuesCount);
     virtual ~DistributedMonitor();
 
     /*
@@ -51,12 +55,12 @@ public:
         d_unlock(&m);
     }
      */
-    void d_lock(int mtxPos);
-    void d_unlock(int mtxPos);
-    void d_wait(std::shared_ptr<ConditionalVariable> cvar);
-    template< class Predicate >
-    void d_wait(std::shared_ptr<ConditionalVariable> cvar, Predicate condition);
-    void d_signal(std::shared_ptr<ConditionalVariable> cvar);
+    void d_lock();
+    void d_unlock();
+    void d_wait(int messagesLamportClock);
+    void d_signal();
+
+
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H
