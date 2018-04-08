@@ -104,7 +104,7 @@ void DistributedMonitor::d_lock() {
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (this->getConnectionId(), Message::MessageType::LOCK_MTX);
     int lamportClockOfSendMessages = this->sendMessageOnBroadcast(msg, true);
-    d_wait(lamportClockOfSendMessages);
+    l_wait(lamportClockOfSendMessages);
 }
 
 void DistributedMonitor::d_unlock() {
@@ -113,7 +113,7 @@ void DistributedMonitor::d_unlock() {
     this->sendMessageOnBroadcast(msg, false);
 }
 
-void DistributedMonitor::d_wait(int messagesLamportClock) {
+void DistributedMonitor::l_wait(int messagesLamportClock) {
     bool condition = false;
     while (!condition) {
         condition = true;
@@ -130,7 +130,7 @@ void DistributedMonitor::d_wait(int messagesLamportClock) {
     }
 }
 
-void DistributedMonitor::d_signal() {
+void DistributedMonitor::l_signal() {
     cv.notify_all();
 }
 

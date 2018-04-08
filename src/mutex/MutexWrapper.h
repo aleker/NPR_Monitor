@@ -15,16 +15,11 @@ public:
         distributedMonitor(distributedMonitor) {
         mainMutex = &distributedMonitor->mainMutex;
         std::lock_guard<std::mutex> guard(*mainMutex);
-        sendRequest();
+        distributedMonitor->d_lock();
     }
 
     ~MutexWrapper() {
         distributedMonitor->d_unlock();
-    }
-
-    void sendRequest() {
-        std::cout << "Send request!\n";
-        distributedMonitor->d_lock();
     }
 };
 

@@ -19,7 +19,6 @@ public:
 
     void increment() {
         MutexWrapper mutexWrapper(this);
-
         // STH
         int i = getConnectionId();
         this->protected_values[i]+= (i + 5);

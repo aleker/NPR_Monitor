@@ -14,7 +14,6 @@ private:
     std::thread listenThread;
     std::condition_variable cv;
 
-
     struct myRequest {
         int clock;
         int answerCounter;
@@ -32,6 +31,8 @@ private:
     void listen();
 
     void addMessageToMyNotFulfilledRequestsVector(std::shared_ptr<Message> message, int counter);
+    void l_wait(int messagesLamportClock);
+    void l_signal();
 
     void sendMessage(std::shared_ptr<Message> message);
     int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply);
@@ -50,16 +51,13 @@ public:
     void put() {
         d_lock(&m);
         while (flag == 1)
-            d_wait(&c, &m);
-        d_signal(&c);
+            l_wait(&c, &m);
+        l_signal(&c);
         d_unlock(&m);
     }
      */
     void d_lock();
     void d_unlock();
-    void d_wait(int messagesLamportClock);
-    void d_signal();
-
 
 };
 
