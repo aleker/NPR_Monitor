@@ -42,15 +42,18 @@ void MPI_Connection::sendMessage(std::shared_ptr<Message> message) {
              MPI_COMM_WORLD);
 }
 
-Message MPI_Connection::receiveMessage() {
-    return receiveMessage(MPI_ANY_TAG, MPI_ANY_SOURCE);
+template <class MT>
+MT MPI_Connection::receiveMessage() {
+    return receiveMessage<MT>(MPI_ANY_TAG, MPI_ANY_SOURCE);
 }
 
-Message MPI_Connection::receiveMessage(int tag) {
-    return receiveMessage(tag, MPI_ANY_SOURCE);
+template <class MT>
+MT MPI_Connection::receiveMessage(int tag) {
+    return receiveMessage<MT>(tag, MPI_ANY_SOURCE);
 }
 
-Message MPI_Connection::receiveMessage(int tag, int receiversId) {
+template <class MT>
+MT MPI_Connection::receiveMessage(int tag, int receiversId) {
     std::string receivedMessageString;
     MPI_Status senderStatus;
     MPI_Recv(&receivedMessageString,
@@ -60,11 +63,6 @@ Message MPI_Connection::receiveMessage(int tag, int receiversId) {
              tag,
              MPI_COMM_WORLD,
              &senderStatus);
-    Message messageObj = Message::deserializeMessage<Message>(receivedMessageString);
+    MT messageObj = Message::deserializeMessage<MT>(receivedMessageString);
     return messageObj;
 }
-
-
-
-
-

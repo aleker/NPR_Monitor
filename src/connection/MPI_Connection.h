@@ -19,9 +19,12 @@ public:
     int getId() override;
     int getClientsCount() override;
     void sendMessage(std::shared_ptr<Message> message);
-    Message receiveMessage();
-    Message receiveMessage(int tag);
-    Message receiveMessage(int tag, int receiversId);
+    template <class MT>
+    MT receiveMessage();
+    template <class MT>
+    MT receiveMessage(int tag);
+    template <class MT>
+    MT receiveMessage(int tag, int receiversId);
 };
 
 

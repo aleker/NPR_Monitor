@@ -10,9 +10,8 @@ void setupLogFile(const char* filename) {
 
 void createCommonLog(int id, std::string message, int clock) {
     if (printCommonLog) {
-        using namespace std::chrono;
-        milliseconds ms = duration_cast<milliseconds>(
-                system_clock::now().time_since_epoch()
+        std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()
         );
         std::cout << std::to_string(ms.count()) << " l:" << clock << " ID: " << id << " " << message << std::endl;
     }
@@ -22,7 +21,6 @@ DistributedMonitor::DistributedMonitor(std::unique_ptr<ConnectionManager> connec
         connectionManager(std::move(connectionManager)) {
     std::stringstream filename;
     filename << "log" << this->getConnectionId() << ".txt";
-    std::cout << "filename= " << filename.str() << "\n";
     // setupLogFile(filename.str().c_str());
     this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
@@ -101,18 +99,12 @@ void DistributedMonitor::addMessageToMyNotFulfilledRequestsVector(std::shared_pt
 }
 
 /*
- * listen() - function called on listenThread
+ * listen() - function called on listenThread. It manages all received messages.
  */
 
 // TODO DistributedMonitor.listen()
 void DistributedMonitor::listen() {
-//    int kasia = 2;
-//    while(kasia > 0) {
-//        std::cout << "Listening...." << std::endl;
-//        std::chrono::seconds sec(1);
-//        std::this_thread::sleep_for(sec);
-//        kasia--;
-//    }
+
 }
 
 /*
