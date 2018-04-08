@@ -34,7 +34,7 @@ void put() {
     // na końcu metody uruchamia  się destruktor (więc nie może być to klasa static)
 }
 
-mogę powiedzieć profesorowi, że w Monitorze jest taka metoda lock() i unlock(), której trzeba użyć w put().
+mogę powiedzieć profesorowi, że w Monitorze jest taka metoda d_lock() i d_unlock(), której trzeba użyć w put().
 Albo np. żeby w pucie utworzyć obiekt, który jest niepotrzebny ogółem, ale który ma automatyczny kontruktor lub destruktor, który robi potrzebne rzeczy.
 
 c1, c2 - jesli wymagają parametru do stworzenia to też można powiedzieć

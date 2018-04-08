@@ -21,16 +21,16 @@ public:
     }
 
     void increment() {
-        lock(0);
+        d_lock(0);
         int i = connectionManager->getId();
         this->protected_values[i]+= (i + 5);
-        unlock(0);
+        d_unlock(0);
     }
 
     int getProtectedValues(int i) {
-        lock(0);
+        d_lock(0);
         int value = this->protected_values[i];
-        unlock(0);
+        d_unlock(0);
         return value;
     }
 

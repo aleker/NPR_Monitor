@@ -13,9 +13,8 @@
 #include <sstream>
 #include <boost/archive/text_iarchive.hpp>
 
-const int NO_REQUEST_CLOCK = -1;
+const int NOT_SET = -1;
 const int MAX_MSG_SIZE = 50;
-
 
 class Message {
 private:
@@ -29,31 +28,40 @@ private:
         * Here you have to call base serialization first
         */
         archive & sendersClock;
-        archive & sendersId;
+        archive & messageType;
         archive & receiversId;
         archive & gotRequestClock;
-        archive & messageType;
+        archive & sendersClock;
     }
     /*
     *
     */
 
-    int sendersClock = 0;
-    int sendersId = 0;
-    int receiversId = 0;
-    int gotRequestClock = NO_REQUEST_CLOCK;
-    int messageType = 0;
+    int sendersId = NOT_SET;
+    int messageType = MessageType::EMPTY;
+    int receiversId = NOT_SET;
+    int gotRequestClock = NOT_SET;
+    int sendersClock = NOT_SET;
 
 public:
-    Message() = default;
-    Message(int sendersId, int receiversId, int gotRequestClock, int messageType) :
-            sendersId(sendersId),
-            receiversId(receiversId),
-            gotRequestClock(gotRequestClock),
-            messageType(messageType) {}
+    enum MessageType {
+        EMPTY,
+        REQUEST_MTX
+    };
 
-    Message(int sendersId, int receiversId, int messageType) :
-            Message(sendersId, receiversId, NO_REQUEST_CLOCK, messageType){
+    Message() = default;
+    Message(int sendersId, int messageType, int receiversId, int gotRequestClock) :
+            sendersId(sendersId),
+            messageType(messageType),
+            receiversId(receiversId),
+            gotRequestClock(gotRequestClock) {}
+
+    Message(int sendersId, int messageType, int receiversId) :
+            Message(sendersId, messageType, receiversId, NOT_SET){
+    }
+
+    Message(int sendersId, int messageType) :
+            Message(sendersId, messageType, NOT_SET, NOT_SET){
     }
 
     int getSendersClock() const {
@@ -74,6 +82,10 @@ public:
 
     void setSendersClock(int sendersClock) {
         this->sendersClock = sendersClock;
+    }
+
+    void setReceiversId(int receiversId) {
+        this->receiversId = receiversId;
     }
 
     template<typename T>
