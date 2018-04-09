@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include "../DistributedMonitor.h"
-#include "../mutex/MutexWrapper.h"
+#include "../mutex/DistributedMutex.h"
 
 class TestSharingValues : public DistributedMonitor {
 private:
@@ -18,7 +18,7 @@ public:
     }
 
     void increment() {
-        MutexWrapper mutexWrapper(this);
+        DistributedMutex d_mutex(this);
         // STH
         int i = getConnectionId();
         this->protected_values[i]+= (i + 5);
@@ -26,7 +26,7 @@ public:
     }
 
     int getProtectedValues(int i) {
-        MutexWrapper mutexWrapper(this);
+        DistributedMutex d_mutex(this);
         int value = this->protected_values[i];
         return value;
     }
@@ -39,6 +39,11 @@ public:
                       << std::endl;
         }
     }
+
+    std::string getClassUniqueName() override {
+        return "share";
+    }
+
 };
 
 #endif //NPR_MONITOR_TEST_H

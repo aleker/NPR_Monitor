@@ -11,7 +11,7 @@ set(SOURCE_FILES
         src/test/main.cpp
         src/DistributedMonitor.cpp
         src/DistributedMonitor.h
-        src/mutex/MutexWrapper.h
+        src/mutex/DistributedMutex.h
         src/test/TestSharingValues.h
         src/connection/ConnectionManager.h
         src/connection/MPI_Connection.cpp

@@ -32,6 +32,8 @@ private:
         archive & receiversId;
         archive & gotRequestClock;
         archive & sendersClock;
+        if (!mtxName.empty())
+            archive & mtxName;
     }
     /*
     *
@@ -42,6 +44,7 @@ private:
     int receiversId = NOT_SET;
     int gotRequestClock = NOT_SET;
     int sendersClock = NOT_SET;
+    std::string mtxName;
 
 public:
     enum MessageType {
@@ -51,19 +54,25 @@ public:
     };
 
     Message() = default;
-    Message(int sendersId, int messageType, int receiversId, int gotRequestClock) :
+    Message(int sendersId, int messageType, int receiversId, int gotRequestClock, std::string mtxName) :
             sendersId(sendersId),
             messageType(messageType),
             receiversId(receiversId),
-            gotRequestClock(gotRequestClock) {}
+            gotRequestClock(gotRequestClock),
+            mtxName(mtxName) {}
+
+    Message(int sendersId, int messageType, int receiversId, int gotRequestClock) :
+            Message(sendersId, messageType, receiversId, NOT_SET, ""){}
+
 
     Message(int sendersId, int messageType, int receiversId) :
-            Message(sendersId, messageType, receiversId, NOT_SET){
-    }
+            Message(sendersId, messageType, receiversId, NOT_SET, ""){}
+
+    Message(int sendersId, int messageType, std::string mtxName) :
+            Message(sendersId, messageType, NOT_SET, NOT_SET, mtxName){}
 
     Message(int sendersId, int messageType) :
-            Message(sendersId, messageType, NOT_SET, NOT_SET){
-    }
+            Message(sendersId, messageType, NOT_SET, NOT_SET, ""){}
 
     int getSendersClock() const {
         return sendersClock;
@@ -87,6 +96,14 @@ public:
 
     void setReceiversId(int receiversId) {
         this->receiversId = receiversId;
+    }
+
+    std::string getMtxName() {
+        return mtxName;
+    }
+
+    void setMtxName(std::string mtxName) {
+        this->mtxName = mtxName;
     }
 
     template<typename T>

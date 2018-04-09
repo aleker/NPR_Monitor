@@ -4,14 +4,18 @@
 #include <cstring>
 #include <memory>
 #include <thread>
-#include <mutex>
 #include <condition_variable>
-#include "connection/MPI_Connection.h"
+#include <map>
+#include <vector>
+#include "connection/ConnectionManager.h"
+#include "connection/Message.h"
+
 
 class DistributedMonitor {
 private:
     std::unique_ptr<ConnectionManager> connectionManager;
-    std::thread listenThread;
+    std::thread* listenThread;
+    static std::map<std::string, std::mutex> uniqueClassNameToMutexMap;
     std::condition_variable cv;
 
     struct myRequest {
@@ -29,10 +33,8 @@ private:
     int getLamportClock() const;
 
     void listen();
-
     void addMessageToMyNotFulfilledRequestsVector(std::shared_ptr<Message> message, int counter);
-    void l_wait(int messagesLamportClock);
-    void l_signal();
+    bool checkIfGotAllReplies(int requestClock);
 
     void sendMessage(std::shared_ptr<Message> message);
     int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply);
@@ -42,8 +44,6 @@ protected:
     int getConnectionId();
 
 public:
-    std::mutex mainMutex;
-
     explicit DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager);
     virtual ~DistributedMonitor();
 
@@ -58,7 +58,8 @@ public:
      */
     void d_lock();
     void d_unlock();
-
+    virtual std::string getClassUniqueName() = 0;
+    std::mutex& getMutex();
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H

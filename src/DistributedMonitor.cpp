@@ -1,6 +1,8 @@
 #include <iostream>
 #include "DistributedMonitor.h"
 
+std::map<std::string, std::mutex> DistributedMonitor::uniqueClassNameToMutexMap;
+
 // TODO setupLogFile
 bool printCommonLog = true;
 void setupLogFile(const char* filename) {
@@ -19,15 +21,21 @@ void createCommonLog(int id, std::string message, int clock) {
 
 DistributedMonitor::DistributedMonitor(std::unique_ptr<ConnectionManager> connectionManager) :
         connectionManager(std::move(connectionManager)) {
-    std::stringstream filename;
-    filename << "log" << this->getConnectionId() << ".txt";
+     static std::thread thread = std::thread(&DistributedMonitor::listen, this);
+     listenThread = &thread;
+//    std::map<std::string,std::mutex>::iterator it;
+//    std::string name = getClassUniqueName();
+//    it = DistributedMonitor::uniqueClassNameToMutexMap.find(name);
+//    if (it == DistributedMonitor::uniqueClassNameToMutexMap.end())
+//        DistributedMonitor::uniqueClassNameToMutexMap[name];
+    // std::stringstream filename;
+    // filename << "log" << this->getConnectionId() << ".txt";
     // setupLogFile(filename.str().c_str());
-    this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
 
 DistributedMonitor::~DistributedMonitor() {
     std::cout << "JOIN\n";
-    this->listenThread.join();
+    this->listenThread->join();
 }
 
 int DistributedMonitor::getConnectionId() {
@@ -92,6 +100,14 @@ void DistributedMonitor::addMessageToMyNotFulfilledRequestsVector(std::shared_pt
 
 // TODO DistributedMonitor.listen()
 void DistributedMonitor::listen() {
+    std::cout << "Listen only once!\n";
+    int kasia = 4;
+    while (kasia > 0) {
+        std::chrono::seconds sec(1);
+        std::this_thread::sleep_for(sec);
+        kasia--;
+    }
+    std::cout << "Listen end!\n";
 
 }
 
@@ -99,39 +115,37 @@ void DistributedMonitor::listen() {
  * Conditional Value managing
  */
 
+bool DistributedMonitor::checkIfGotAllReplies(int requestClock) {
+    bool condition = true;
+    for (myRequest item : myNotFulfilledRequestsVector) {
+        if (item.clock == requestClock) {
+            condition = false;
+            break;
+        }
+    }
+    return condition;
+}
 
 void DistributedMonitor::d_lock() {
     std::shared_ptr<Message> msg = std::make_shared<Message>
-            (this->getConnectionId(), Message::MessageType::LOCK_MTX);
+            (this->getConnectionId(), Message::MessageType::LOCK_MTX, getClassUniqueName());
     int lamportClockOfSendMessages = this->sendMessageOnBroadcast(msg, true);
-    l_wait(lamportClockOfSendMessages);
+    while (!checkIfGotAllReplies(lamportClockOfSendMessages)) {
+        std::unique_lock<std::mutex> lk(getMutex());
+        std::cout << "WAIT\n";
+        cv.wait(lk);
+    };
 }
 
 void DistributedMonitor::d_unlock() {
     std::shared_ptr<Message> msg = std::make_shared<Message>
-            (this->getConnectionId(), Message::MessageType::UNLOCK_MTX);
+            (this->getConnectionId(), Message::MessageType::UNLOCK_MTX, getClassUniqueName());
     this->sendMessageOnBroadcast(msg, false);
 }
 
-void DistributedMonitor::l_wait(int messagesLamportClock) {
-    bool condition = false;
-    while (!condition) {
-        condition = true;
-        for (myRequest item : myNotFulfilledRequestsVector) {
-            if (item.clock == messagesLamportClock) {
-                condition = false;
-                break;
-            }
-        }
-        if (!condition) {
-            std::unique_lock<std::mutex> lk(mainMutex);
-            cv.wait(lk);
-        }
-    }
-}
-
-void DistributedMonitor::l_signal() {
-    cv.notify_all();
+std::mutex& DistributedMonitor::getMutex() {
+    std::string name = getClassUniqueName();
+    return uniqueClassNameToMutexMap[name];
 }
 
 

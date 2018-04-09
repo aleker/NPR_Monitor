@@ -6,7 +6,16 @@
 class ConnectionManager {
 protected:
 
+private:
+    //ConnectionManager() {}
+    //ConnectionManager(ConnectionManager const&);       // Don't Implement.
+    //void operator=(ConnectionManager const&);          // Don't Implement.
 public:
+//    static ConnectionManager& getInstance() {
+//        static ConnectionManager instance; // Guaranteed to be destroyed.
+//        return instance;
+//    }
+
     virtual ~ConnectionManager() = default;
     virtual int getId() = 0;
     virtual int getClientsCount() = 0;
