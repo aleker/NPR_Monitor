@@ -30,36 +30,35 @@ private:
         archive & sendersClock;
         archive & messageType;
         archive & receiversId;
-        archive & gotRequestClock;
+        archive & requestClock;
         archive & sendersClock;
-        if (!mtxName.empty())
-            archive & mtxName;
+        archive & data;
     }
     /*
     *
     */
 
     int sendersId = NOT_SET;
-    int messageType = MessageType::DATA;
+    int messageType = MessageType ::LOCK_MTX;
     int receiversId = NOT_SET;
-    int gotRequestClock = NOT_SET;
+    int requestClock = NOT_SET;
     int sendersClock = NOT_SET;
-    std::string mtxName;
+    std::string data = "";
 
 public:
     enum MessageType {
-        DATA,
         LOCK_MTX,
+        LOCK_RESPONSE,
         UNLOCK_MTX
     };
 
     Message() = default;
-    Message(int sendersId, int messageType, int receiversId, int gotRequestClock, std::string mtxName) :
+    Message(int sendersId, int messageType, int receiversId, int gotRequestClock, std::string data) :
             sendersId(sendersId),
             messageType(messageType),
             receiversId(receiversId),
-            gotRequestClock(gotRequestClock),
-            mtxName(mtxName) {}
+            requestClock(gotRequestClock),
+            data(data) {}
 
     Message(int sendersId, int messageType, int receiversId, int gotRequestClock) :
             Message(sendersId, messageType, receiversId, NOT_SET, ""){}
@@ -68,8 +67,8 @@ public:
     Message(int sendersId, int messageType, int receiversId) :
             Message(sendersId, messageType, receiversId, NOT_SET, ""){}
 
-    Message(int sendersId, int messageType, std::string mtxName) :
-            Message(sendersId, messageType, NOT_SET, NOT_SET, mtxName){}
+    Message(int sendersId, int messageType, std::string data) :
+            Message(sendersId, messageType, NOT_SET, NOT_SET, data){}
 
     Message(int sendersId, int messageType) :
             Message(sendersId, messageType, NOT_SET, NOT_SET, ""){}
@@ -90,6 +89,14 @@ public:
         return messageType;
     }
 
+    int getRequestClock() const {
+        return requestClock;
+    }
+
+    std::string getData() const {
+        return data;
+    }
+
     void setSendersClock(int sendersClock) {
         this->sendersClock = sendersClock;
     }
@@ -99,11 +106,11 @@ public:
     }
 
     std::string getMtxName() {
-        return mtxName;
+        return data;
     }
 
-    void setMtxName(std::string mtxName) {
-        this->mtxName = mtxName;
+    void setClassName(std::string data) {
+        this->data = data;
     }
 
     template<typename T>

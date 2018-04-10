@@ -1,17 +1,30 @@
-#include <mpi.h>
-
 #include "MPI_Connection.h"
 
+bool MPI_Connection::initialized;
+std::mutex MPI_Connection::recvMessageMtx;
+
+
+MPI_Connection::MPI_Connection(int argc, char **argv, int problemNo) {
+    initialize(argc, argv);
+    int worldRank;
+    MPI_communicator = new MPI_Comm();
+    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+    MPI_Comm_split(MPI_COMM_WORLD, problemNo, worldRank, MPI_communicator);
+    MPI_Comm_rank(*MPI_communicator, &this->id);
+    MPI_Comm_size(*MPI_communicator, &this->mpiClientsCount);
+    std::cout << "Id: " << this->id << " of " << this->mpiClientsCount << "\n";
+}
 
 MPI_Connection::MPI_Connection(int argc, char **argv) {
-    createConnection(argc, argv);
+    initialize(argc, argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &this->id);
     MPI_Comm_size(MPI_COMM_WORLD, &this->mpiClientsCount);
-    std::cout << "My id: " << this->id << " of " << this->mpiClientsCount << "\n";
+    std::cout << "Id: " << this->id << " of " << this->mpiClientsCount << "\n";
 }
 
 MPI_Connection::~MPI_Connection() {
     printf("Exit! Id: %d.\n", this->id);
+    MPI_Comm_free(MPI_communicator);
     MPI_Finalize();
 }
 
@@ -23,46 +36,99 @@ int MPI_Connection::getClientsCount() {
     return this->mpiClientsCount;
 }
 
-void MPI_Connection::createConnection(int argc, char **argv) {
+void MPI_Connection::initialize(int argc, char **argv) {
+    if (MPI_Connection::initialized) return;
     int provided = 0;
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
     if (provided != MPI_THREAD_MULTIPLE) {
         std::cerr << "No multiple thread support!" << std::endl;
         throw;
     }
+    MPI_Connection::initialized = true;
 }
 
 void MPI_Connection::sendMessage(std::shared_ptr<Message> message) {
     std::string serializedMessage = Message::serializeMessage<Message>(*message.get());
-    MPI_Send(serializedMessage.c_str(),
-             sizeof(serializedMessage.c_str()),
-             MPI_BYTE,
-             message->getReceiversId(),
-             message->getMessageType(),
-             MPI_COMM_WORLD);
+    if (isMPICommunicatorNotNull()) {
+        MPI_Send(serializedMessage.c_str(),
+                 serializedMessage.length(),
+                 MPI_BYTE,
+                 message->getReceiversId(),
+                 message->getMessageType(),
+                 *MPI_communicator);
+    }
+    else {
+        MPI_Send(serializedMessage.c_str(),
+                 serializedMessage.length(),
+                 MPI_BYTE,
+                 message->getReceiversId(),
+                 message->getMessageType(),
+                 MPI_COMM_WORLD);
+    }
 }
 
-template <class MT>
-MT MPI_Connection::receiveMessage() {
-    return receiveMessage<MT>(MPI_ANY_TAG, MPI_ANY_SOURCE);
+Message MPI_Connection::receiveMessage() {
+    return receiveMessage(MPI_ANY_TAG, MPI_ANY_SOURCE);
 }
 
-template <class MT>
-MT MPI_Connection::receiveMessage(int tag) {
-    return receiveMessage<MT>(tag, MPI_ANY_SOURCE);
+Message MPI_Connection::receiveMessage(int tag) {
+    return receiveMessage(tag, MPI_ANY_SOURCE);
 }
 
-template <class MT>
-MT MPI_Connection::receiveMessage(int tag, int receiversId) {
-    std::string receivedMessageString;
+Message MPI_Connection::receiveMessage(int tag, int sourceId) {
+    Message messageObj;
+    char receivedMessage[MAX_MSG_SIZE];
+    char* receivedMessagePointer = receivedMessage;
     MPI_Status senderStatus;
-    MPI_Recv(&receivedMessageString,
-             MAX_MSG_SIZE,
-             MPI_BYTE,
-             receiversId,
-             tag,
-             MPI_COMM_WORLD,
-             &senderStatus);
-    MT messageObj = Message::deserializeMessage<MT>(receivedMessageString);
+    // blocking receive
+    if (isMPICommunicatorNotNull()) {
+        MPI_Recv(receivedMessagePointer,
+                 MAX_MSG_SIZE,
+                 MPI_BYTE,
+                 sourceId,
+                 tag,
+                 *MPI_communicator,
+                 &senderStatus);
+    }
+    else {
+        MPI_Recv(receivedMessagePointer,
+                 MAX_MSG_SIZE,
+                 MPI_BYTE,
+                 sourceId,
+                 tag,
+                 MPI_COMM_WORLD,
+                 &senderStatus);
+    }
+    std::string receivedMessageString(receivedMessage);
+    messageObj = Message::deserializeMessage<Message>(receivedMessageString);
     return messageObj;
 }
+
+int MPI_Connection::getProblemNo() {
+    return problemNo;
+}
+
+bool MPI_Connection::tryToReceive(int tag, int sourceId) {
+    MPI_Status senderStatus;
+    int flag;
+    // nonblocking test for data
+    if (isMPICommunicatorNotNull())
+        MPI_Iprobe(sourceId, tag, *MPI_communicator, &flag,  &senderStatus);
+    else
+        MPI_Iprobe(sourceId, tag, MPI_COMM_WORLD, &flag,  &senderStatus);
+    return (flag == 1);
+}
+
+bool MPI_Connection::tryToReceive(int tag) {
+    return tryToReceive(tag, MPI_ANY_SOURCE);
+}
+
+std::mutex* MPI_Connection::getReceiveMutex() {
+    return &recvMessageMtx;
+}
+
+bool MPI_Connection::isMPICommunicatorNotNull() {
+    return (MPI_communicator != nullptr);
+}
+
+
