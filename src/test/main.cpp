@@ -1,20 +1,20 @@
 #include <iostream>
 
-#include "TestSharingValues.h"
+#include "Buffer.h"
 #include "../MultiprocessDebugHelper.h"
 #include "../connection/MPI_Connection.h"
 
 int main(int argc, char *argv[]) {
-    auto connection = std::make_shared<MPI_Connection>(argc, argv, 1);
+    auto connection = std::make_shared<MPI_Connection>(argc, argv, 4);
     // auto connectionP = std::make_shared<MPI_Connection>(argc, argv, 2);
     // TESTING:
-    // MultiprocessDebugHelper::setup(15000 + connection->getId());
+    MultiprocessDebugHelper::setup(15000 + connection->getClientId());
 
-    TestSharingValues test(std::move(connection), "AAA");
+    Buffer test(std::move(connection));
 
     std::chrono::seconds sec(1);
     std::this_thread::sleep_for(sec);
-    //TestSharingValues test2(std::move(connectionP), "PPP");
+    //Buffer test2(std::move(connectionP), "PPP");
 
 
     // TEST MULTITHREADING

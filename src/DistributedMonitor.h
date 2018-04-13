@@ -21,9 +21,8 @@ public:
 private:
     std::shared_ptr<ConnectionManager> connectionManager;
     std::thread listenThread;
-    std::mutex mutex;
     std::map<std::string, std::mutex> mutexMap;
-    std::condition_variable cv;
+    std::map<std::string, std::condition_variable> cvMap;
 
     struct myRequest {
         int clock = -1;
@@ -41,36 +40,31 @@ private:
 
     void listen();
     void setMessageAsMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter);
-    void addToRequestsFromOthersQueue(Message *receivedMessage);
     void sendResponse(int receiverId, int requestClock);
     void reactForLockRequest(Message *receivedMessage);
     void reactForLockResponse(Message *receivedMessage);
     void reactForUnlock(Message * receivedMessage);
+    void sendLockResponse(int receiverId, int requestClock);
     void freeRequests();
-    void l_unlock();
-    void l_lock(int receiverId, int requestClock);
+    bool checkIfGotAllReplies();
+    void changeState(State state);
 
     void sendMessage(std::shared_ptr<Message> message);
     int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply);
     void sendSingleMessage(std::shared_ptr<Message> message, bool waitForReply);
 
 protected:
-    int getConnectionId();
+    int getClientId();
 
 public:
     explicit DistributedMonitor(std::shared_ptr<ConnectionManager> connectionManager);
     virtual ~DistributedMonitor();
     virtual std::string returnDataToSend() = 0;
     virtual void manageReceivedData(std::string receivedData) = 0;
-    virtual std::string getCaseName() = 0;
+    int getUniqueConnectionNo();
 
     void d_lock();
     void d_unlock();
-    std::mutex& getMutex();
-    std::condition_variable& getCv();
-
-    bool checkIfGotAllReplies();
-    void changeState(State state);
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H

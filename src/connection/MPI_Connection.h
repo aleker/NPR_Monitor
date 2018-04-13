@@ -24,12 +24,12 @@ private:
 
 public:
     MPI_Connection(int argc, char *argv[]);
-    MPI_Connection(int argc, char *argv[], int problemNo);
+    MPI_Connection(int argc, char *argv[], int uniqueConnectionNo);
     ~MPI_Connection();
 
-    int getId() override;
+    int getClientId() override;
     int getClientsCount() override;
-    int getProblemNo() override;
+    int getUniqueConnectionNo() override;
 
     std::mutex* getReceiveMutex() override;
 

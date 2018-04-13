@@ -7,9 +7,9 @@
 class ConnectionManager {
 public:
     virtual ~ConnectionManager() = default;
-    virtual int getId() = 0;
+    virtual int getClientId() = 0;
     virtual int getClientsCount() = 0;
-    virtual int getProblemNo() = 0;
+    virtual int getUniqueConnectionNo() = 0;
     virtual std::mutex* getReceiveMutex() = 0;
 
     virtual void sendMessage(std::shared_ptr<Message> message) {}

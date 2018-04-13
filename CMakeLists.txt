@@ -12,7 +12,7 @@ set(SOURCE_FILES
         src/DistributedMonitor.cpp
         src/DistributedMonitor.h
         src/mutex/DistributedMutex.h
-        src/test/TestSharingValues.h
+        src/test/Buffer.h
         src/connection/ConnectionManager.h
         src/connection/MPI_Connection.cpp
         src/connection/MPI_Connection.h

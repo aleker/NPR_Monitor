@@ -4,12 +4,12 @@ bool MPI_Connection::initialized;
 std::mutex MPI_Connection::recvMessageMtx;
 
 
-MPI_Connection::MPI_Connection(int argc, char **argv, int problemNo) {
+MPI_Connection::MPI_Connection(int argc, char **argv, int uniqueConnectionNo) {
     initialize(argc, argv);
     int worldRank;
     MPI_communicator = new MPI_Comm();
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
-    MPI_Comm_split(MPI_COMM_WORLD, problemNo, worldRank, MPI_communicator);
+    MPI_Comm_split(MPI_COMM_WORLD, uniqueConnectionNo, worldRank, MPI_communicator);
     MPI_Comm_rank(*MPI_communicator, &this->id);
     MPI_Comm_size(*MPI_communicator, &this->mpiClientsCount);
     std::cout << "Id: " << this->id << " of " << this->mpiClientsCount << "\n";
@@ -28,7 +28,7 @@ MPI_Connection::~MPI_Connection() {
     MPI_Finalize();
 }
 
-int MPI_Connection::getId() {
+int MPI_Connection::getClientId() {
     return this->id;
 }
 
@@ -104,7 +104,7 @@ Message MPI_Connection::receiveMessage(int tag, int sourceId) {
     return messageObj;
 }
 
-int MPI_Connection::getProblemNo() {
+int MPI_Connection::getUniqueConnectionNo() {
     return problemNo;
 }
 
