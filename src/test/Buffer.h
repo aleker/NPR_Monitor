@@ -32,7 +32,7 @@ public:
 
     void printProtectedValues() {
         for (int i = 0; i < 2 ; i++) {
-            std::cout << "id=" << getClientId()
+            std::cout << getClientId() << getUniqueConnectionNo()
                       << ", val[" << i
                       << "], =" << this->protected_values[i]
                       << std::endl;

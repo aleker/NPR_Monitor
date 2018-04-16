@@ -64,7 +64,6 @@ void DistributedMonitor::sendMessage(std::shared_ptr<Message> message) {
         return;
     }
     connectionManager->sendMessage(message);
-    std::cout << "Message sent!" << std::endl;
 }
 
 void DistributedMonitor::sendSingleMessage(std::shared_ptr<Message> message, bool waitForReply) {
@@ -89,6 +88,7 @@ int DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message,
             sendMessage(message);
         }
     }
+    // connectionManager->sendMessageOnBroadcast(message);
     return lamportClock;
 }
 
@@ -105,18 +105,20 @@ void DistributedMonitor::d_lock() {
     // SEND REQUEST FOR CRITICAL SECTION
     mutexMap["state"].lock();
     changeState(State::WAITING_FOR_REPLIES);
-    std::cout << getClientId() << ": d_lock()";
+    std::cout << getClientId() << getUniqueConnectionNo() << ": d_lock() - TRY\n";
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (this->getClientId(), Message::MessageType::LOCK_MTX);
-    this->sendMessageOnBroadcast(msg, true);
+    int thisMessageClock = this->sendMessageOnBroadcast(msg, true);
     mutexMap["state"].unlock();
 
-    while (!checkIfGotAllReplies()) {
+    // TODO if!! bo jak sprawdza to check if got all replies już jest wyczyszczony!!!
+    // TODO
+    while (!checkIfGotAllReplies(thisMessageClock)) {
         std::unique_lock<std::mutex> lk(mutexMap["critical-section"]);
-        std::cout << getClientId() << " WAIT\n";
+        std::cout << getClientId() << getUniqueConnectionNo() << " WAIT\n";
         cvMap["gotAllReplies"].wait(lk);
     };
-    std::cout << getClientId() << "gotAllReplies!!!\n";
+    std::cout << getClientId() << getUniqueConnectionNo() << ": GLOBAL['critical-section'].lock()\n";
     // NOW IN CRITICAL SECTION
     mutexMap["state"].lock();
     changeState(State::IN_CRITICAL_SECTION);
@@ -127,7 +129,7 @@ void DistributedMonitor::d_unlock() {
     // SEND MESSAGE WITH CHANGED DATA AND LEAVE CRITICAL SECTION
     // send responses from requestsFromOthersQueue
     // TODO tutaj?
-    std::cout << getClientId() << ": d_unlock()";
+    std::cout << getClientId() << getUniqueConnectionNo() <<": GLOBAL[\"critical-section\"].unlock()\n";
     mutexMap["critical-section"].unlock();
     mutexMap["state"].lock();
     freeRequests();
@@ -150,7 +152,7 @@ void DistributedMonitor::sendResponse(int receiverId, int requestClock) {
 
 void DistributedMonitor::sendLockResponse(int receiverId, int requestClock) {
     mutexMap["critical-section"].lock();
-    std::cout << getClientId() << getUniqueConnectionNo() << ": ['critical-section'].lock\n";
+    std::cout << getClientId() << getUniqueConnectionNo() <<": LOCAL['critical-section'].lock()\n";
     sendResponse(receiverId, requestClock);
 }
 
@@ -184,11 +186,12 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
 }
 
 void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
-    if (myNotFulfilledRequest.clock == receivedMessage->getRequestClock())
+    if (myNotFulfilledRequest.clock == receivedMessage->getRequestClock()) {
         myNotFulfilledRequest.decrementCounter();
-    if (checkIfGotAllReplies()) {
+    }
+    if (checkIfGotAllReplies(receivedMessage->getRequestClock())) {
         // got all responses -> go to critical section
-        cvMap["gotAllReplies"].notify_all();
+        cvMap["gotAllReplies"].notify_one();
         myRequest clear;
         myNotFulfilledRequest = clear;
     }
@@ -198,8 +201,7 @@ void DistributedMonitor::reactForUnlock(Message *receivedMessage) {
     std::string data = receivedMessage->getData();
     manageReceivedData(data);
     mutexMap["critical-section"].unlock();
-    std::cout << getClientId() << getUniqueConnectionNo() << ": ['critical-section'].unlock\n";
-
+    std::cout << getClientId() << getUniqueConnectionNo() << ": LOCAL['critical-section'].unlock()\n";
 }
 
 void DistributedMonitor::listen() {
@@ -234,8 +236,10 @@ void DistributedMonitor::listen() {
     }
 }
 
-bool DistributedMonitor::checkIfGotAllReplies() {
-    return (myNotFulfilledRequest.clock <= 0);
+bool DistributedMonitor::checkIfGotAllReplies(int clock) {
+    if (clock == myNotFulfilledRequest.clock)
+        return (myNotFulfilledRequest.answerCounter <= 0);
+    else return true;
 }
 
 void DistributedMonitor::freeRequests() {

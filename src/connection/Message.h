@@ -14,7 +14,8 @@
 #include <boost/archive/text_iarchive.hpp>
 
 const int NOT_SET = -1;
-const int MAX_MSG_SIZE = 50;
+// TODO pilnuj by wiadomosc nie byla wieksza
+const int MAX_MSG_SIZE = 100;
 
 class Message {
 private:
@@ -27,7 +28,7 @@ private:
         /*
         * Here you have to call base serialization first
         */
-        archive & sendersClock;
+        archive & sendersId;
         archive & messageType;
         archive & receiversId;
         archive & requestClock;
@@ -61,7 +62,7 @@ public:
             data(data) {}
 
     Message(int sendersId, int messageType, int receiversId, int gotRequestClock) :
-            Message(sendersId, messageType, receiversId, NOT_SET, ""){}
+            Message(sendersId, messageType, receiversId, gotRequestClock, ""){}
 
 
     Message(int sendersId, int messageType, int receiversId) :

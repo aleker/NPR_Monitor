@@ -46,7 +46,7 @@ private:
     void reactForUnlock(Message * receivedMessage);
     void sendLockResponse(int receiverId, int requestClock);
     void freeRequests();
-    bool checkIfGotAllReplies();
+    bool checkIfGotAllReplies(int clock);
     void changeState(State state);
 
     void sendMessage(std::shared_ptr<Message> message);

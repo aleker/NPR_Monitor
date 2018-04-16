@@ -5,6 +5,7 @@ std::mutex MPI_Connection::recvMessageMtx;
 
 
 MPI_Connection::MPI_Connection(int argc, char **argv, int uniqueConnectionNo) {
+    this->problemNo = uniqueConnectionNo;
     initialize(argc, argv);
     int worldRank;
     MPI_communicator = new MPI_Comm();
@@ -64,6 +65,24 @@ void MPI_Connection::sendMessage(std::shared_ptr<Message> message) {
                  message->getReceiversId(),
                  message->getMessageType(),
                  MPI_COMM_WORLD);
+    }
+}
+
+void MPI_Connection::sendMessageOnBroadcast(std::shared_ptr<Message> message) {
+    std::string serializedMessage = Message::serializeMessage<Message>(*message.get());
+    if (isMPICommunicatorNotNull()) {
+        MPI_Bcast((void *) serializedMessage.c_str(),
+                  serializedMessage.length(),
+                  MPI_BYTE,
+                  message->getSendersId(),
+                  *MPI_communicator);
+    }
+    else {
+        MPI_Bcast((void *) serializedMessage.c_str(),
+                  serializedMessage.length(),
+                  MPI_BYTE,
+                  message->getSendersId(),
+                  MPI_COMM_WORLD);
     }
 }
 

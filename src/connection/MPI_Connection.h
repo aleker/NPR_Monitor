@@ -34,6 +34,7 @@ public:
     std::mutex* getReceiveMutex() override;
 
     void sendMessage(std::shared_ptr<Message> message) override ;
+    void sendMessageOnBroadcast(std::shared_ptr<Message> message) override;
     Message receiveMessage() override ;
     Message receiveMessage(int tag) override ;
     Message receiveMessage(int tag, int sourceId) override;

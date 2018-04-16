@@ -12,7 +12,8 @@ public:
     virtual int getUniqueConnectionNo() = 0;
     virtual std::mutex* getReceiveMutex() = 0;
 
-    virtual void sendMessage(std::shared_ptr<Message> message) {}
+    virtual void sendMessage(std::shared_ptr<Message> message) = 0;
+    virtual void sendMessageOnBroadcast(std::shared_ptr<Message> message) = 0;
     virtual Message receiveMessage() = 0;
     virtual Message receiveMessage(int tag) = 0;
     virtual Message receiveMessage(int tag, int sourceId) = 0;

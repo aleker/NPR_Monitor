@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     auto connection = std::make_shared<MPI_Connection>(argc, argv, 4);
     // auto connectionP = std::make_shared<MPI_Connection>(argc, argv, 2);
     // TESTING:
-    MultiprocessDebugHelper::setup(15000 + connection->getClientId());
+    // MultiprocessDebugHelper::setup(15000 + connection->getClientId());
 
     Buffer test(std::move(connection));
 
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
         test.increment();
         //test2.increment();
         sec = std::chrono::seconds(3);
-        std::this_thread::sleep_for(sec);
+        //std::this_thread::sleep_for(sec);
         loopsCount--;
         test.printProtectedValues();
         //test2.printProtectedValues();
