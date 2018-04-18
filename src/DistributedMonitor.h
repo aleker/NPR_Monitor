@@ -40,7 +40,6 @@ private:
 
     void listen();
     void setMessageAsMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter);
-    void sendResponse(int receiverId, int requestClock);
     void reactForLockRequest(Message *receivedMessage);
     void reactForLockResponse(Message *receivedMessage);
     void reactForUnlock(Message * receivedMessage);

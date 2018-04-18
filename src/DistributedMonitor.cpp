@@ -2,38 +2,16 @@
 #include "DistributedMonitor.h"
 
 
-// TODO setupLogFile
-bool printCommonLog = true;
-void setupLogFile(const char* filename) {
-    std::fclose(fopen(filename, "w"));
-    std::freopen(filename, "a+", stdout);
-}
-
-void createCommonLog(int id, std::string message, int clock) {
-    if (printCommonLog) {
-        std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()
-        );
-        std::cout << std::to_string(ms.count()) << " l:" << clock << " ID: " << id << " " << message << std::endl;
-    }
-}
-
 DistributedMonitor::DistributedMonitor(std::shared_ptr<ConnectionManager> connectionManager) :
         connectionManager(std::move(connectionManager)) {
-     this->listenThread = std::thread(&DistributedMonitor::listen, this);;
-//    std::map<std::string,std::mutex>::iterator it;
-//    std::string name = getClassUniqueName();
-//    it = DistributedMonitor::uniqueClassNameToMutexMap.find(name);
-//    if (it == DistributedMonitor::uniqueClassNameToMutexMap.end())
-//        DistributedMonitor::uniqueClassNameToMutexMap[name];
-    // std::stringstream filename;
-    // filename << "log" << this->getClientId() << ".txt";
-    // setupLogFile(filename.str().c_str());
+     this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
 
 DistributedMonitor::~DistributedMonitor() {
-    std::cout << "JOIN\n";
+    std::cout << getClientId() << getUniqueConnectionNo() << ": JOIN?\n";
     this->listenThread.join();
+    std::cout << getClientId() << getUniqueConnectionNo() << ": JOIN!\n";
+
 }
 
 int DistributedMonitor::getClientId() {
@@ -115,7 +93,7 @@ void DistributedMonitor::d_lock() {
     // TODO
     while (!checkIfGotAllReplies(thisMessageClock)) {
         std::unique_lock<std::mutex> lk(mutexMap["critical-section"]);
-        std::cout << getClientId() << getUniqueConnectionNo() << " WAIT\n";
+        std::cout << getClientId() << getUniqueConnectionNo() << ": WAIT\n";
         cvMap["gotAllReplies"].wait(lk);
     };
     std::cout << getClientId() << getUniqueConnectionNo() << ": GLOBAL['critical-section'].lock()\n";
@@ -129,8 +107,8 @@ void DistributedMonitor::d_unlock() {
     // SEND MESSAGE WITH CHANGED DATA AND LEAVE CRITICAL SECTION
     // send responses from requestsFromOthersQueue
     // TODO tutaj?
-    std::cout << getClientId() << getUniqueConnectionNo() <<": GLOBAL[\"critical-section\"].unlock()\n";
     mutexMap["critical-section"].unlock();
+    std::cout << getClientId() << getUniqueConnectionNo() <<": GLOBAL[\"critical-section\"].unlock()\n";
     mutexMap["state"].lock();
     freeRequests();
     changeState(State::FREE);
@@ -141,19 +119,15 @@ void DistributedMonitor::d_unlock() {
     this->sendMessageOnBroadcast(msg, false);
 }
 
-void DistributedMonitor::sendResponse(int receiverId, int requestClock) {
+void DistributedMonitor::sendLockResponse(int receiverId, int requestClock) {
+    mutexMap["critical-section"].lock();
+    std::cout << getClientId() << getUniqueConnectionNo() <<": LOCAL['critical-section'].lock()\n";
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (this->getClientId(),
              Message::MessageType::LOCK_RESPONSE,
              receiverId,
              requestClock);
     this->sendSingleMessage(msg, false);
-}
-
-void DistributedMonitor::sendLockResponse(int receiverId, int requestClock) {
-    mutexMap["critical-section"].lock();
-    std::cout << getClientId() << getUniqueConnectionNo() <<": LOCAL['critical-section'].lock()\n";
-    sendResponse(receiverId, requestClock);
 }
 
 void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
@@ -246,7 +220,7 @@ void DistributedMonitor::freeRequests() {
     // TODO in new thread
     while (!requestsFromOthersQueue.empty()) {
         Message message = requestsFromOthersQueue.front();
-        sendResponse(message.getSendersId(), message.getSendersClock());
+        sendLockResponse(message.getSendersId(), message.getSendersClock());
         requestsFromOthersQueue.pop();
     }
 }

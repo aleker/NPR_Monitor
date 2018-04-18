@@ -21,13 +21,11 @@ int main(int argc, char *argv[]) {
     int loopsCount = 4;
     while(loopsCount > 0) {
         test.increment();
-        //test2.increment();
-        sec = std::chrono::seconds(3);
-        //std::this_thread::sleep_for(sec);
         loopsCount--;
-        test.printProtectedValues();
-        //test2.printProtectedValues();
     }
+
+    sec = std::chrono::seconds(3);
+    test.printProtectedValues();
 
     return 0;
 }
