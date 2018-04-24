@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "Buffer.h"
+#include "TestBuffer.h"
 #include "../MultiprocessDebugHelper.h"
 #include "../connection/MPI_Connection.h"
 
@@ -10,9 +10,9 @@ int main(int argc, char *argv[]) {
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection->getDistributedClientId());
 
-    Buffer test(&connection);
-    Buffer test2(&connectionP);
-    Buffer test3(&connectionP);
+    TestBuffer test(&connection);
+    TestBuffer test2(&connectionP);
+    TestBuffer test3(&connectionP);
 
     // TEST MULTITHREADING
     int loopsCount = 400;

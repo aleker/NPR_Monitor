@@ -14,7 +14,7 @@
 #include <boost/archive/text_iarchive.hpp>
 
 const int NOT_SET = -1;
-// TODO pilnuj by wiadomosc nie byla wieksza
+// TODO message not bigger than MAX_MSG_SIZE
 const int MAX_MSG_SIZE = 100;
 
 class Message {

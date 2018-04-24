@@ -5,14 +5,13 @@
 #include "../DistributedMonitor.h"
 #include "../mutex/DistributedMutex.h"
 
-class Buffer : public DistributedMonitor {
+class TestBuffer : public DistributedMonitor {
 private:
     int protected_values[2] = {0, 0};
 
 public:
-    explicit Buffer(ConnectionManager* connectionManager)
-            : DistributedMonitor(connectionManager) {
-    }
+    explicit TestBuffer(ConnectionManager* connectionManager)
+            : DistributedMonitor(connectionManager) {}
 
     void increment() {
         DistributedMutex d_mutex(this);

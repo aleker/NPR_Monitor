@@ -11,6 +11,7 @@ DistributedMonitor::DistributedMonitor(ConnectionManager* connectionManager) :
 }
 
 DistributedMonitor::~DistributedMonitor() {
+    // TODO end connection properly
     log(": JOIN?");
     this->listenThread.join();
     log(": JOIN!");
@@ -67,9 +68,6 @@ void DistributedMonitor::sendMessage(std::shared_ptr<Message> message) {
         throw "Receivers distributedClientId not set!\n";
         return;
     }
-    std::stringstream str;
-    str << "SEND TO " << message->getMessageTypeId() << ":" << message->getReceiversId();
-    log(str.str());
     connectionManager->sendMessage(message);
 }
 
@@ -115,14 +113,10 @@ void DistributedMonitor::d_lock() {
     int thisMessageClock = this->sendMessageOnBroadcast(msg, true);
     mutexMap["state"].unlock();
 
-
-    // TODO if!! bo jak sprawdza to check if got all replies już jest wyczyszczony!!!
-    // TODO
     while (!checkIfGotAllReplies(thisMessageClock)) {
         std::unique_lock<std::mutex> lk(mutexMap["critical-section"]);
         log("WAIT");
         if (!checkIfGotAllReplies(thisMessageClock))
-            // todo jak teraz zrobi decrement to kupa więc jest w critical-section
             cvMap["gotAllReplies"].wait(lk);    // odpuszcza critical-section
     };
     log("GLOBAL['critical-section'].lock()");
@@ -204,7 +198,6 @@ void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
     mutexMap["myNotFulfilledRequest"].lock();
     if (myNotFulfilledRequest.clock == receivedMessage->getRequestClock()) {
         myNotFulfilledRequest.decrementCounter();
-        // TODO
     }
     mutexMap["myNotFulfilledRequest"].unlock();
     if (checkIfGotAllReplies(receivedMessage->getRequestClock())) {
@@ -269,7 +262,6 @@ bool DistributedMonitor::checkIfGotAllReplies(int clock) {
 }
 
 void DistributedMonitor::freeRequests() {
-    // TODO in new thread
     while (!requestsFromOthersQueue.empty()) {
         Message message = requestsFromOthersQueue.front();
         sendLockResponse(message.getSendersDistributedId(), message.getSendersLocalId(), message.getSendersClock());
