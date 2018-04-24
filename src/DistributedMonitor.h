@@ -58,15 +58,16 @@ private:
     void sendSingleMessage(std::shared_ptr<Message> message, bool waitForReply);
 
 protected:
+    int getUniqueConnectionNo();
     int getDistributedClientId();
     int getLocalClientId();
+    void log(std::string log);
 
 public:
     explicit DistributedMonitor(std::shared_ptr<ConnectionManager> connectionManager);
     ~DistributedMonitor();
     virtual std::string returnDataToSend() = 0;
     virtual void manageReceivedData(std::string receivedData) = 0;
-    int getUniqueConnectionNo();
 
     void d_lock();
     void d_unlock();

@@ -11,20 +11,20 @@ int main(int argc, char *argv[]) {
     // MultiprocessDebugHelper::setup(15000 + connection->getDistributedClientId());
 
     Buffer test(std::move(connection));
-    // Buffer test2(std::move(connection));
+    Buffer test2(std::move(connectionP));
 
     // TEST MULTITHREADING
-    int loopsCount = 10;
+    int loopsCount = 4;
     while(loopsCount > 0) {
         test.increment();
-        // test2.increment();
+        test2.increment();
         loopsCount--;
     }
 
     std::chrono::seconds sec = std::chrono::seconds(6);
     std::this_thread::sleep_for(sec);
     test.printProtectedValues();
-    // test2.printProtectedValues();
+    test2.printProtectedValues();
 
     return 0;
 }

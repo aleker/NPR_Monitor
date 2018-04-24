@@ -13,14 +13,12 @@ MPI_Connection::MPI_Connection(int argc, char **argv, int uniqueConnectionNo) {
     MPI_Comm_split(MPI_COMM_WORLD, uniqueConnectionNo, worldRank, MPI_communicator);
     MPI_Comm_rank(*MPI_communicator, &this->distributedClientId);
     MPI_Comm_size(*MPI_communicator, &this->mpiDistributedClientsCount);
-    std::cout << "Id: " << this->distributedClientId << " of " << this->mpiDistributedClientsCount << "\n";
 }
 
 MPI_Connection::MPI_Connection(int argc, char **argv) {
     initialize(argc, argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &this->distributedClientId);
     MPI_Comm_size(MPI_COMM_WORLD, &this->mpiDistributedClientsCount);
-    std::cout << "Id: " << this->distributedClientId << " of " << this->mpiDistributedClientsCount << "\n";
 }
 
 MPI_Connection::~MPI_Connection() {
@@ -155,7 +153,11 @@ int MPI_Connection::getLocalClientsCount() {
 }
 
 int MPI_Connection::addNewLocalClient() {
-    return ++localClientsIdsCount;
+    recvMessageMtx.lock();
+    ++localClientsIdsCount;
+    int newId = localClientsIdsCount;
+    recvMessageMtx.unlock();
+    return newId;
 }
 
 
