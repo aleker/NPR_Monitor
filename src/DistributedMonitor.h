@@ -20,6 +20,7 @@ public:
     };
 
 private:
+    int localClientId;
     std::shared_ptr<ConnectionManager> connectionManager;
     std::thread listenThread;
     std::map<std::string, std::mutex> mutexMap;
@@ -56,7 +57,8 @@ private:
     void sendSingleMessage(std::shared_ptr<Message> message, bool waitForReply);
 
 protected:
-    int getClientId();
+    int getDistributedClientId();
+    int getLocalClientId();
 
 public:
     explicit DistributedMonitor(std::shared_ptr<ConnectionManager> connectionManager);

@@ -11,11 +11,11 @@
 class MPI_Connection : public ConnectionManager {
 
 private:
-    int id;
-    int mpiClientsCount;
+    std::vector<int> localClientsIdsVector;
+    int distributedClientId;
+    int mpiDistributedClientsCount;
     MPI_Comm* MPI_communicator = nullptr;
     int problemNo = -1;
-    //std::mutex recvMessageMtx;
     static std::mutex recvMessageMtx;
     static bool initialized;
 
@@ -27,9 +27,11 @@ public:
     MPI_Connection(int argc, char *argv[], int uniqueConnectionNo);
     ~MPI_Connection();
 
-    int getClientId() override;
-    int getClientsCount() override;
+    int getDistributedClientId() override;
+    int getDistributedClientsCount() override;
     int getUniqueConnectionNo() override;
+    int getLocalClientsCount() override;
+    int addNewLocalClient() override;
 
     std::mutex* getReceiveMutex() override;
 

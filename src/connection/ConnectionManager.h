@@ -7,9 +7,11 @@
 class ConnectionManager {
 public:
     virtual ~ConnectionManager() = default;
-    virtual int getClientId() = 0;
-    virtual int getClientsCount() = 0;
+    virtual int getDistributedClientId() = 0;
+    virtual int getDistributedClientsCount() = 0;
     virtual int getUniqueConnectionNo() = 0;
+    virtual int getLocalClientsCount() = 0;
+    virtual int addNewLocalClient() = 0;
     virtual std::mutex* getReceiveMutex() = 0;
 
     virtual void sendMessage(std::shared_ptr<Message> message) = 0;

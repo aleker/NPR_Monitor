@@ -11,30 +11,30 @@ MPI_Connection::MPI_Connection(int argc, char **argv, int uniqueConnectionNo) {
     MPI_communicator = new MPI_Comm();
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
     MPI_Comm_split(MPI_COMM_WORLD, uniqueConnectionNo, worldRank, MPI_communicator);
-    MPI_Comm_rank(*MPI_communicator, &this->id);
-    MPI_Comm_size(*MPI_communicator, &this->mpiClientsCount);
-    std::cout << "Id: " << this->id << " of " << this->mpiClientsCount << "\n";
+    MPI_Comm_rank(*MPI_communicator, &this->distributedClientId);
+    MPI_Comm_size(*MPI_communicator, &this->mpiDistributedClientsCount);
+    std::cout << "Id: " << this->distributedClientId << " of " << this->mpiDistributedClientsCount << "\n";
 }
 
 MPI_Connection::MPI_Connection(int argc, char **argv) {
     initialize(argc, argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &this->id);
-    MPI_Comm_size(MPI_COMM_WORLD, &this->mpiClientsCount);
-    std::cout << "Id: " << this->id << " of " << this->mpiClientsCount << "\n";
+    MPI_Comm_rank(MPI_COMM_WORLD, &this->distributedClientId);
+    MPI_Comm_size(MPI_COMM_WORLD, &this->mpiDistributedClientsCount);
+    std::cout << "Id: " << this->distributedClientId << " of " << this->mpiDistributedClientsCount << "\n";
 }
 
 MPI_Connection::~MPI_Connection() {
-    printf("Exit! Id: %d.\n", this->id);
+    printf("Exit! Id: %d.\n", this->distributedClientId);
     MPI_Comm_free(MPI_communicator);
     MPI_Finalize();
 }
 
-int MPI_Connection::getClientId() {
-    return this->id;
+int MPI_Connection::getDistributedClientId() {
+    return this->distributedClientId;
 }
 
-int MPI_Connection::getClientsCount() {
-    return this->mpiClientsCount;
+int MPI_Connection::getDistributedClientsCount() {
+    return this->mpiDistributedClientsCount;
 }
 
 void MPI_Connection::initialize(int argc, char **argv) {
@@ -148,6 +148,20 @@ std::mutex* MPI_Connection::getReceiveMutex() {
 
 bool MPI_Connection::isMPICommunicatorNotNull() {
     return (MPI_communicator != nullptr);
+}
+
+int MPI_Connection::getLocalClientsCount() {
+    return static_cast<int>(localClientsIdsVector.size());
+}
+
+int MPI_Connection::addNewLocalClient() {
+    // TODO lock on adding new client?
+    int newId = 0;
+    if (getLocalClientsCount() > 0) {
+        newId = localClientsIdsVector.back() + 1;
+    }
+    localClientsIdsVector.push_back(newId);
+    return newId;
 }
 
 

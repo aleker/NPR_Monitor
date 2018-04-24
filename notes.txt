@@ -109,7 +109,7 @@ openmpi savethread flag
 
 w konstruktorze zmiennej warunkowej ma być g_mutex
 
-//    MultiprocessDebugHelper::setup(15000 + connection->getClientId());
+//    MultiprocessDebugHelper::setup(15000 + connection->getDistributedClientId());
 
 // wymaga zainstalowania https://www.boost.org/
 
@@ -172,9 +172,9 @@ int main() {
 Monitor
 ========
 Zakładam, że puszczę jeden program mpirun.
-Buforów dziedziczących po monitorze może być wiele - mogą być identyfikowane po jakimś id.
+Buforów dziedziczących po monitorze może być wiele - mogą być identyfikowane po jakimś distributedClientId.
 Wtedy bufor jest przekazywany do konsumenta/producenta. Każdy bufor będzie w oddzielnym komunikatorze.
 Może być wile producentów w mainie z tym samym buforem. Mogą komunikować sie przez mpi (trzeba wysyłać wiadomość mpi do siebie).
-Czyli trzeba będzie dodać jakies id producenta?
+Czyli trzeba będzie dodać jakies distributedClientId producenta?
 Jak zrobić zeby wszyscy dostali?
 

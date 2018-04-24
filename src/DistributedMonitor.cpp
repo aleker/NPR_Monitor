@@ -4,18 +4,23 @@
 
 DistributedMonitor::DistributedMonitor(std::shared_ptr<ConnectionManager> connectionManager) :
         connectionManager(std::move(connectionManager)) {
+    this->localClientId = connectionManager->addNewLocalClient();
      this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
 
 DistributedMonitor::~DistributedMonitor() {
-    std::cout << getClientId() << getUniqueConnectionNo() << ": JOIN?\n";
+    std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": JOIN?\n";
     this->listenThread.join();
-    std::cout << getClientId() << getUniqueConnectionNo() << ": JOIN!\n";
+    std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": JOIN!\n";
 
 }
 
-int DistributedMonitor::getClientId() {
-    return this->connectionManager->getClientId();
+int DistributedMonitor::getDistributedClientId() {
+    return this->connectionManager->getDistributedClientId();
+}
+
+int DistributedMonitor::getLocalClientId() {
+    return this->localClientId;
 }
 
 int DistributedMonitor::getUniqueConnectionNo() {
@@ -32,7 +37,7 @@ void DistributedMonitor::updateLamportClock(int newValue) {
 
 void DistributedMonitor::changeState(State state) {
     this->state = state;
-    std::cout << getClientId() << getUniqueConnectionNo() << ": state " << state << std::endl;
+    std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": state " << state << std::endl;
 }
 
 DistributedMonitor::myRequest DistributedMonitor::getMyNotFulfilledRequest() {
@@ -55,8 +60,8 @@ void DistributedMonitor::setMyNotFulfilledRequest(std::shared_ptr<Message> messa
 
 void DistributedMonitor::sendMessage(std::shared_ptr<Message> message) {
     if (message->getReceiversId() == NOT_SET) {
-        std::cerr << "Receivers id not set!\n";
-        throw "Receivers id not set!\n";
+        std::cerr << "Receivers distributedClientId not set!\n";
+        throw "Receivers distributedClientId not set!\n";
         return;
     }
     connectionManager->sendMessage(message);
@@ -74,8 +79,8 @@ int DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message,
     updateLamportClock();
     int lamportClock = this->lamportClock;
     message->setSendersClock(lamportClock);
-    int myId = connectionManager->getClientId();
-    int clientsCount = connectionManager->getClientsCount();
+    int myId = connectionManager->getDistributedClientId();
+    int clientsCount = connectionManager->getDistributedClientsCount();
     if (waitForReply)
         setMyNotFulfilledRequest(std::make_shared<Message>(*message), (clientsCount - 1));
     for (int i = 0; i < clientsCount; i ++) {
@@ -96,9 +101,9 @@ void DistributedMonitor::d_lock() {
     // SEND REQUEST FOR CRITICAL SECTION
     mutexMap["state"].lock();
     changeState(State::WAITING_FOR_REPLIES);
-    std::cout << getClientId() << getUniqueConnectionNo() << ": d_lock() - TRY\n";
+    std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": d_lock() - TRY\n";
     std::shared_ptr<Message> msg = std::make_shared<Message>
-            (this->getClientId(), Message::MessageType::LOCK_MTX);
+            (this->getDistributedClientId(), Message::MessageType::LOCK_MTX);
     int thisMessageClock = this->sendMessageOnBroadcast(msg, true);
     mutexMap["state"].unlock();
 
@@ -107,12 +112,12 @@ void DistributedMonitor::d_lock() {
     // TODO
     while (!checkIfGotAllReplies(thisMessageClock)) {
         std::unique_lock<std::mutex> lk(mutexMap["critical-section"]);
-        std::cout << getClientId() << getUniqueConnectionNo() << ": WAIT\n";
+        std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": WAIT\n";
         if (!checkIfGotAllReplies(thisMessageClock))
             // todo jak teraz zrobi decrement to kupa więc jest w critical-section
             cvMap["gotAllReplies"].wait(lk);    // odpuszcza critical-section
     };
-    std::cout << getClientId() << getUniqueConnectionNo() << ": GLOBAL['critical-section'].lock()\n";
+    std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": GLOBAL['critical-section'].lock()\n";
 
     // NOW IN CRITICAL SECTION
     mutexMap["state"].lock();
@@ -127,22 +132,22 @@ void DistributedMonitor::d_unlock() {
     // send responses from requestsFromOthersQueue
     // TODO tutaj?
     mutexMap["critical-section"].unlock();
-    std::cout << getClientId() << getUniqueConnectionNo() <<": GLOBAL[\"critical-section\"].unlock()\n";
+    std::cout << getDistributedClientId() << getUniqueConnectionNo() <<": GLOBAL[\"critical-section\"].unlock()\n";
     mutexMap["state"].lock();
     freeRequests();
     changeState(State::FREE);
     mutexMap["state"].unlock();
     std::string data = returnDataToSend();
     std::shared_ptr<Message> msg = std::make_shared<Message>
-            (this->getClientId(), Message::MessageType::UNLOCK_MTX, data);
+            (this->getDistributedClientId(), Message::MessageType::UNLOCK_MTX, data);
     this->sendMessageOnBroadcast(msg, false);
 }
 
 void DistributedMonitor::sendLockResponse(int receiverId, int requestClock) {
     mutexMap["critical-section"].lock();
-    std::cout << getClientId() << getUniqueConnectionNo() <<": LOCAL['critical-section'].lock()\n";
+    std::cout << getDistributedClientId() << getUniqueConnectionNo() <<": LOCAL['critical-section'].lock()\n";
     std::shared_ptr<Message> msg = std::make_shared<Message>
-            (this->getClientId(),
+            (this->getDistributedClientId(),
              Message::MessageType::LOCK_RESPONSE,
              receiverId,
              requestClock);
@@ -156,12 +161,12 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
             assert(myNotFulfilledRequest.clock != -1);
             myRequest myRequest = getMyNotFulfilledRequest();
             // TODO remove cout
-//            std::cout << getClientId() << getUniqueConnectionNo() << ": " << receivedMessage->getSendersClock()
+//            std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": " << receivedMessage->getSendersClock()
 //                      << " <? " << myRequest.clock << "\n";
             if (receivedMessage->getSendersClock() < myRequest.clock
                 or (receivedMessage->getSendersClock() == myRequest.clock
-                     and receivedMessage->getSendersId() < this->getClientId())) {
-                // our clock is worse (greater) or our id is worse: lock mutex
+                     and receivedMessage->getSendersId() < this->getDistributedClientId())) {
+                // our clock is worse (greater) or our distributedClientId is worse: lock mutex
                 sendLockResponse(receivedMessage->getSendersId(), receivedMessage->getSendersClock());
             }
             else {
@@ -200,30 +205,30 @@ void DistributedMonitor::reactForUnlock(Message *receivedMessage) {
     std::string data = receivedMessage->getData();
     manageReceivedData(data);
     mutexMap["critical-section"].unlock();
-    std::cout << getClientId() << getUniqueConnectionNo() << ": LOCAL['critical-section'].unlock()\n";
+    std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": LOCAL['critical-section'].unlock()\n";
 }
 
 void DistributedMonitor::listen() {
-    std::cout << getClientId() << getUniqueConnectionNo() << ": LISTEN!\n";
+    std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": LISTEN!\n";
     Message message;
     while(true) {
         connectionManager->getReceiveMutex()->lock();
         if (connectionManager->tryToReceive(Message::MessageType::LOCK_MTX)) {
             message = connectionManager->receiveMessage(Message::MessageType::LOCK_MTX);
-            std::cout << getClientId() << getUniqueConnectionNo() << ": received LOCK_MTX!\n";
+            std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": received LOCK_MTX!\n";
             updateLamportClock(message.getSendersClock());
             reactForLockRequest(&message);
         }
         if (connectionManager->tryToReceive(Message::MessageType::LOCK_RESPONSE)) {
             message = connectionManager->receiveMessage(Message::MessageType::LOCK_RESPONSE);
-            std::cout << getClientId() << getUniqueConnectionNo() << ": received LOCK_RESPONSE!\n";
+            std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": received LOCK_RESPONSE!\n";
             updateLamportClock(message.getSendersClock());
             reactForLockResponse(&message);
 
         }
         if (connectionManager->tryToReceive(Message::MessageType::UNLOCK_MTX)) {
             message = connectionManager->receiveMessage(Message::MessageType::UNLOCK_MTX);
-            std::cout << getClientId() << getUniqueConnectionNo() << ": received UNLOCK_MTX!\n";
+            std::cout << getDistributedClientId() << getUniqueConnectionNo() << ": received UNLOCK_MTX!\n";
             updateLamportClock(message.getSendersClock());
             reactForUnlock(&message);
         }

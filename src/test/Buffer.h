@@ -17,7 +17,7 @@ public:
     void increment() {
         DistributedMutex d_mutex(this);
         // STH
-        int i = getClientId();
+        int i = getDistributedClientId();
         this->protected_values[i]+= (i + 5);
         //
     }
@@ -30,7 +30,7 @@ public:
 
     void printProtectedValues() {
         for (int i = 0; i < 2 ; i++) {
-            std::cout << getClientId() << getUniqueConnectionNo()
+            std::cout << getDistributedClientId() << getUniqueConnectionNo()
                       << ": val[" << i
                       << "], =" << this->protected_values[i]
                       << std::endl;
