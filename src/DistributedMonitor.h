@@ -12,6 +12,7 @@
 
 
 class DistributedMonitor {
+    const int clientIdStep = 100;
 public:
     enum State {
         FREE,
@@ -47,7 +48,7 @@ private:
     void reactForLockRequest(Message *receivedMessage);
     void reactForLockResponse(Message *receivedMessage);
     void reactForUnlock(Message * receivedMessage);
-    void sendLockResponse(int receiverId, int requestClock);
+    void sendLockResponse(int receiverId, int receiversLocalId, int requestClock);
     void freeRequests();
     bool checkIfGotAllReplies(int clock);
     void changeState(State state);

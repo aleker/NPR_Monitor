@@ -74,14 +74,14 @@ void MPI_Connection::sendMessageOnBroadcast(std::shared_ptr<Message> message) {
         MPI_Bcast((void *) serializedMessage.c_str(),
                   serializedMessage.length(),
                   MPI_BYTE,
-                  message->getSendersId(),
+                  message->getSendersDistributedId(),
                   *MPI_communicator);
     }
     else {
         MPI_Bcast((void *) serializedMessage.c_str(),
                   serializedMessage.length(),
                   MPI_BYTE,
-                  message->getSendersId(),
+                  message->getSendersDistributedId(),
                   MPI_COMM_WORLD);
     }
 }
@@ -151,17 +151,11 @@ bool MPI_Connection::isMPICommunicatorNotNull() {
 }
 
 int MPI_Connection::getLocalClientsCount() {
-    return static_cast<int>(localClientsIdsVector.size());
+    return localClientsIdsCount;
 }
 
 int MPI_Connection::addNewLocalClient() {
-    // TODO lock on adding new client?
-    int newId = 0;
-    if (getLocalClientsCount() > 0) {
-        newId = localClientsIdsVector.back() + 1;
-    }
-    localClientsIdsVector.push_back(newId);
-    return newId;
+    return ++localClientsIdsCount;
 }
 
 

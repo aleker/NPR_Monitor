@@ -28,9 +28,10 @@ private:
         /*
         * Here you have to call base serialization first
         */
-        archive & sendersId;
+        archive & sendersDistributedId;
+        archive & sendersLocalId;
         archive & messageType;
-        archive & receiversId;
+        archive & receiversDistributedId;
         archive & requestClock;
         archive & sendersClock;
         archive & data;
@@ -39,9 +40,10 @@ private:
     *
     */
 
-    int sendersId = NOT_SET;
+    int sendersDistributedId = NOT_SET;
+    int sendersLocalId = NOT_SET;
     int messageType = MessageType ::LOCK_MTX;
-    int receiversId = NOT_SET;
+    int receiversDistributedId = NOT_SET;
     int requestClock = NOT_SET;
     int sendersClock = NOT_SET;
     std::string data = "";
@@ -54,36 +56,36 @@ public:
     };
 
     Message() = default;
-    Message(int sendersId, int messageType, int receiversId, int gotRequestClock, std::string data) :
-            sendersId(sendersId),
+    Message(int sendersDistributedId, int sendersLocalId, int messageType, int gotRequestClock, std::string data) :
+            sendersDistributedId(sendersDistributedId),
+            sendersLocalId(sendersLocalId),
             messageType(messageType),
-            receiversId(receiversId),
             requestClock(gotRequestClock),
             data(data) {}
 
-    Message(int sendersId, int messageType, int receiversId, int gotRequestClock) :
-            Message(sendersId, messageType, receiversId, gotRequestClock, ""){}
+    Message(int sendersDistributedId, int sendersLocalId, int messageType, int gotRequestClock) :
+            Message(sendersDistributedId, sendersLocalId, messageType, gotRequestClock, ""){}
 
+    Message(int sendersDistributedId, int sendersLocalId, int messageType, std::string data) :
+            Message(sendersDistributedId, sendersLocalId, messageType, NOT_SET, data){}
 
-    Message(int sendersId, int messageType, int receiversId) :
-            Message(sendersId, messageType, receiversId, NOT_SET, ""){}
-
-    Message(int sendersId, int messageType, std::string data) :
-            Message(sendersId, messageType, NOT_SET, NOT_SET, data){}
-
-    Message(int sendersId, int messageType) :
-            Message(sendersId, messageType, NOT_SET, NOT_SET, ""){}
+    Message(int sendersDistributedId, int sendersLocalId, int messageType) :
+            Message(sendersDistributedId, sendersLocalId, messageType, NOT_SET, ""){}
 
     int getSendersClock() const {
         return sendersClock;
     }
 
-    int getSendersId() const {
-        return sendersId;
+    int getSendersDistributedId() const {
+        return sendersDistributedId;
+    }
+
+    int getSendersLocalId() const {
+        return sendersLocalId;
     }
 
     int getReceiversId() const {
-        return receiversId;
+        return receiversDistributedId;
     }
 
     int getMessageType() const {
@@ -102,12 +104,9 @@ public:
         this->sendersClock = sendersClock;
     }
 
-    void setReceiversId(int receiversId) {
-        this->receiversId = receiversId;
-    }
-
-    std::string getMtxName() {
-        return data;
+    void setReceiversId(int receiversDistributedId, int receiversLocalId) {
+        this->receiversDistributedId = receiversDistributedId;
+        this->messageType += receiversLocalId;
     }
 
     void setClassName(std::string data) {

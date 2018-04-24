@@ -11,7 +11,7 @@
 class MPI_Connection : public ConnectionManager {
 
 private:
-    std::vector<int> localClientsIdsVector;
+    int localClientsIdsCount = 0;
     int distributedClientId;
     int mpiDistributedClientsCount;
     MPI_Comm* MPI_communicator = nullptr;

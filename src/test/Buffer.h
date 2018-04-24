@@ -18,7 +18,8 @@ public:
         DistributedMutex d_mutex(this);
         // STH
         int i = getDistributedClientId();
-        this->protected_values[i]+= (i + 5);
+        int y = getLocalClientId();
+        this->protected_values[i]+= (i + y + 5);
         //
     }
 
