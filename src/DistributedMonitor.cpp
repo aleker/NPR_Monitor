@@ -35,6 +35,24 @@ void DistributedMonitor::changeState(State state) {
     std::cout << getClientId() << getUniqueConnectionNo() << ": state " << state << std::endl;
 }
 
+DistributedMonitor::myRequest DistributedMonitor::getMyNotFulfilledRequest() {
+    mutexMap["myNotFulfilledRequest"].lock();
+    myRequest request = myNotFulfilledRequest;
+    mutexMap["myNotFulfilledRequest"].unlock();
+    return request;
+}
+
+void DistributedMonitor::setMyNotFulfilledRequest(DistributedMonitor::myRequest request) {
+    mutexMap["myNotFulfilledRequest"].lock();
+    myNotFulfilledRequest = request;
+    mutexMap["myNotFulfilledRequest"].unlock();
+}
+
+void DistributedMonitor::setMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter) {
+    myRequest request(message->getSendersClock(), counter);
+    setMyNotFulfilledRequest(request);
+}
+
 void DistributedMonitor::sendMessage(std::shared_ptr<Message> message) {
     if (message->getReceiversId() == NOT_SET) {
         std::cerr << "Receivers id not set!\n";
@@ -48,7 +66,7 @@ void DistributedMonitor::sendSingleMessage(std::shared_ptr<Message> message, boo
     updateLamportClock();
     message->setSendersClock(this->lamportClock);
     if (waitForReply)
-        setMessageAsMyNotFulfilledRequest(std::make_shared<Message>(*message), 1);
+        setMyNotFulfilledRequest(std::make_shared<Message>(*message), 1);
     sendMessage(message);
 }
 
@@ -59,7 +77,7 @@ int DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message,
     int myId = connectionManager->getClientId();
     int clientsCount = connectionManager->getClientsCount();
     if (waitForReply)
-        setMessageAsMyNotFulfilledRequest(std::make_shared<Message>(*message), (clientsCount - 1));
+        setMyNotFulfilledRequest(std::make_shared<Message>(*message), (clientsCount - 1));
     for (int i = 0; i < clientsCount; i ++) {
         if (myId != i) {
             message->setReceiversId(i);
@@ -68,14 +86,6 @@ int DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message,
     }
     // connectionManager->sendMessageOnBroadcast(message);
     return lamportClock;
-}
-
-void DistributedMonitor::setMessageAsMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter) {
-    myRequest request(message->getSendersClock(), counter);
-    mutexMap["myNotFulfilledRequest"].lock();
-    assert(request.clock >= 0);
-    myNotFulfilledRequest = request;
-    mutexMap["myNotFulfilledRequest"].unlock();
 }
 
 /*
@@ -108,11 +118,7 @@ void DistributedMonitor::d_lock() {
     mutexMap["state"].lock();
     changeState(State::IN_CRITICAL_SECTION);
     myRequest clear;
-    // TODO myNot niepotrzebny???
-    mutexMap["myNotFulfilledRequest"].lock();
-    myNotFulfilledRequest = clear;
-    std::cout << getClientId() << getUniqueConnectionNo() << ": clearing myNotFullfilledRequest!\n";
-    mutexMap["myNotFulfilledRequest"].unlock();
+    setMyNotFulfilledRequest(clear);
     mutexMap["state"].unlock();
 }
 
@@ -148,12 +154,10 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
     switch (this->state) {
         case State::WAITING_FOR_REPLIES: {
             assert(myNotFulfilledRequest.clock != -1);
-            mutexMap["myNotFulfilledRequest"].lock();
-            myRequest myRequest = myNotFulfilledRequest;
-            mutexMap["myNotFulfilledRequest"].unlock();
-
-            std::cout << getClientId() << getUniqueConnectionNo() << ": " << receivedMessage->getSendersClock()
-                      << " <? " << myRequest.clock << "\n";
+            myRequest myRequest = getMyNotFulfilledRequest();
+            // TODO remove cout
+//            std::cout << getClientId() << getUniqueConnectionNo() << ": " << receivedMessage->getSendersClock()
+//                      << " <? " << myRequest.clock << "\n";
             if (receivedMessage->getSendersClock() < myRequest.clock
                 or (receivedMessage->getSendersClock() == myRequest.clock
                      and receivedMessage->getSendersId() < this->getClientId())) {
@@ -232,9 +236,7 @@ void DistributedMonitor::listen() {
 }
 
 bool DistributedMonitor::checkIfGotAllReplies(int clock) {
-    mutexMap["myNotFulfilledRequest"].lock();
-    myRequest myRequest = myNotFulfilledRequest;
-    mutexMap["myNotFulfilledRequest"].unlock();
+    myRequest myRequest = getMyNotFulfilledRequest();
     if (clock == myRequest.clock)
         return (myRequest.answerCounter <= 0);
     else return true;
@@ -249,6 +251,8 @@ void DistributedMonitor::freeRequests() {
         requestsFromOthersQueue.pop();
     }
 }
+
+
 
 
 

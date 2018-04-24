@@ -18,12 +18,14 @@ public:
         WAITING_FOR_REPLIES,
         IN_CRITICAL_SECTION
     };
+
 private:
     std::shared_ptr<ConnectionManager> connectionManager;
     std::thread listenThread;
     std::map<std::string, std::mutex> mutexMap;
     std::map<std::string, std::condition_variable> cvMap;
-
+    State state = State::FREE;
+    int lamportClock = 0;
     struct myRequest {
         int clock = -1;
         int answerCounter = -1;
@@ -32,14 +34,15 @@ private:
         int decrementCounter() {answerCounter--; return answerCounter;}
     } myNotFulfilledRequest = myRequest();
     std::queue<Message> requestsFromOthersQueue;
-    State state = State::FREE;
-    int lamportClock = 0;
+
+    myRequest getMyNotFulfilledRequest();
+    void setMyNotFulfilledRequest(myRequest request);
+    void setMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter);
 
     void updateLamportClock();
     void updateLamportClock(int newValue);
 
     void listen();
-    void setMessageAsMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter);
     void reactForLockRequest(Message *receivedMessage);
     void reactForLockResponse(Message *receivedMessage);
     void reactForUnlock(Message * receivedMessage);
@@ -65,5 +68,6 @@ public:
     void d_lock();
     void d_unlock();
 };
+
 
 #endif //NPR_MONITOR_DISTRIBUTEDMONITOR_H

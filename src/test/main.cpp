@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
 
     // TEST MULTITHREADING
-    int loopsCount = 4;
+    int loopsCount = 10;
     while(loopsCount > 0) {
         test.increment();
         loopsCount--;
