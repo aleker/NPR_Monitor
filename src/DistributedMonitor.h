@@ -57,7 +57,7 @@ protected:
 
 public:
     explicit DistributedMonitor(std::shared_ptr<ConnectionManager> connectionManager);
-    virtual ~DistributedMonitor();
+    ~DistributedMonitor();
     virtual std::string returnDataToSend() = 0;
     virtual void manageReceivedData(std::string receivedData) = 0;
     int getUniqueConnectionNo();

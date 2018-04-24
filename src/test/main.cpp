@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
         loopsCount--;
     }
 
-    sec = std::chrono::seconds(3);
+    sec = std::chrono::seconds(6);
     test.printProtectedValues();
 
     return 0;

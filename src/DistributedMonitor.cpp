@@ -72,7 +72,10 @@ int DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message,
 
 void DistributedMonitor::setMessageAsMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter) {
     myRequest request(message->getSendersClock(), counter);
+    mutexMap["myNotFulfilledRequest"].lock();
+    assert(request.clock >= 0);
     myNotFulfilledRequest = request;
+    mutexMap["myNotFulfilledRequest"].unlock();
 }
 
 /*
@@ -89,17 +92,27 @@ void DistributedMonitor::d_lock() {
     int thisMessageClock = this->sendMessageOnBroadcast(msg, true);
     mutexMap["state"].unlock();
 
+
     // TODO if!! bo jak sprawdza to check if got all replies już jest wyczyszczony!!!
     // TODO
     while (!checkIfGotAllReplies(thisMessageClock)) {
         std::unique_lock<std::mutex> lk(mutexMap["critical-section"]);
         std::cout << getClientId() << getUniqueConnectionNo() << ": WAIT\n";
-        cvMap["gotAllReplies"].wait(lk);
+        if (!checkIfGotAllReplies(thisMessageClock))
+            // todo jak teraz zrobi decrement to kupa więc jest w critical-section
+            cvMap["gotAllReplies"].wait(lk);    // odpuszcza critical-section
     };
     std::cout << getClientId() << getUniqueConnectionNo() << ": GLOBAL['critical-section'].lock()\n";
+
     // NOW IN CRITICAL SECTION
     mutexMap["state"].lock();
     changeState(State::IN_CRITICAL_SECTION);
+    myRequest clear;
+    // TODO myNot niepotrzebny???
+    mutexMap["myNotFulfilledRequest"].lock();
+    myNotFulfilledRequest = clear;
+    std::cout << getClientId() << getUniqueConnectionNo() << ": clearing myNotFullfilledRequest!\n";
+    mutexMap["myNotFulfilledRequest"].unlock();
     mutexMap["state"].unlock();
 }
 
@@ -134,8 +147,15 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
     mutexMap["state"].lock();
     switch (this->state) {
         case State::WAITING_FOR_REPLIES: {
-            if (receivedMessage->getSendersClock() < myNotFulfilledRequest.clock
-                or (receivedMessage->getSendersClock() == myNotFulfilledRequest.clock
+            assert(myNotFulfilledRequest.clock != -1);
+            mutexMap["myNotFulfilledRequest"].lock();
+            myRequest myRequest = myNotFulfilledRequest;
+            mutexMap["myNotFulfilledRequest"].unlock();
+
+            std::cout << getClientId() << getUniqueConnectionNo() << ": " << receivedMessage->getSendersClock()
+                      << " <? " << myRequest.clock << "\n";
+            if (receivedMessage->getSendersClock() < myRequest.clock
+                or (receivedMessage->getSendersClock() == myRequest.clock
                      and receivedMessage->getSendersId() < this->getClientId())) {
                 // our clock is worse (greater) or our id is worse: lock mutex
                 sendLockResponse(receivedMessage->getSendersId(), receivedMessage->getSendersClock());
@@ -160,14 +180,15 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
 }
 
 void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
+    mutexMap["myNotFulfilledRequest"].lock();
     if (myNotFulfilledRequest.clock == receivedMessage->getRequestClock()) {
         myNotFulfilledRequest.decrementCounter();
+        // TODO
     }
+    mutexMap["myNotFulfilledRequest"].unlock();
     if (checkIfGotAllReplies(receivedMessage->getRequestClock())) {
         // got all responses -> go to critical section
         cvMap["gotAllReplies"].notify_one();
-        myRequest clear;
-        myNotFulfilledRequest = clear;
     }
 }
 
@@ -203,16 +224,19 @@ void DistributedMonitor::listen() {
             reactForUnlock(&message);
         }
 
-        std::chrono::seconds sec(3);
-        std::this_thread::sleep_for(sec);
+//        std::chrono::seconds sec(3);
+//        std::this_thread::sleep_for(sec);
 
         connectionManager->getReceiveMutex()->unlock();
     }
 }
 
 bool DistributedMonitor::checkIfGotAllReplies(int clock) {
-    if (clock == myNotFulfilledRequest.clock)
-        return (myNotFulfilledRequest.answerCounter <= 0);
+    mutexMap["myNotFulfilledRequest"].lock();
+    myRequest myRequest = myNotFulfilledRequest;
+    mutexMap["myNotFulfilledRequest"].unlock();
+    if (clock == myRequest.clock)
+        return (myRequest.answerCounter <= 0);
     else return true;
 }
 
@@ -220,6 +244,7 @@ void DistributedMonitor::freeRequests() {
     // TODO in new thread
     while (!requestsFromOthersQueue.empty()) {
         Message message = requestsFromOthersQueue.front();
+
         sendLockResponse(message.getSendersId(), message.getSendersClock());
         requestsFromOthersQueue.pop();
     }

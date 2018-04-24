@@ -14,8 +14,6 @@ public:
             : DistributedMonitor(std::move(connectionManager)) {
     }
 
-    virtual ~Buffer() {}
-
     void increment() {
         DistributedMutex d_mutex(this);
         // STH
