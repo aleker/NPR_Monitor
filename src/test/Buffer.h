@@ -10,8 +10,8 @@ private:
     int protected_values[2] = {0, 0};
 
 public:
-    explicit Buffer(std::shared_ptr<ConnectionManager> connectionManager)
-            : DistributedMonitor(std::move(connectionManager)) {
+    explicit Buffer(ConnectionManager* connectionManager)
+            : DistributedMonitor(connectionManager) {
     }
 
     void increment() {

@@ -1,7 +1,7 @@
 #include "MPI_Connection.h"
 
 bool MPI_Connection::initialized;
-std::mutex MPI_Connection::recvMessageMtx;
+// std::mutex MPI_Connection::recvMessageMtx;
 
 
 MPI_Connection::MPI_Connection(int argc, char **argv, int uniqueConnectionNo) {
@@ -53,7 +53,7 @@ void MPI_Connection::sendMessage(std::shared_ptr<Message> message) {
                  serializedMessage.length(),
                  MPI_BYTE,
                  message->getReceiversId(),
-                 message->getMessageType(),
+                 message->getMessageTypeId(),
                  *MPI_communicator);
     }
     else {
@@ -61,7 +61,7 @@ void MPI_Connection::sendMessage(std::shared_ptr<Message> message) {
                  serializedMessage.length(),
                  MPI_BYTE,
                  message->getReceiversId(),
-                 message->getMessageType(),
+                 message->getMessageTypeId(),
                  MPI_COMM_WORLD);
     }
 }
@@ -153,10 +153,11 @@ int MPI_Connection::getLocalClientsCount() {
 }
 
 int MPI_Connection::addNewLocalClient() {
-    recvMessageMtx.lock();
-    ++localClientsIdsCount;
-    int newId = localClientsIdsCount;
-    recvMessageMtx.unlock();
+    this->recvMessageMtx.lock();
+    this->localClientsIdsCounter += 1;
+    int newId = this->localClientsIdsCounter;
+    this->localClientsIdsCount = this->localClientsIdsCounter;
+    this->recvMessageMtx.unlock();
     return newId;
 }
 

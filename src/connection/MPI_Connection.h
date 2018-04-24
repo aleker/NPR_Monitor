@@ -11,12 +11,13 @@
 class MPI_Connection : public ConnectionManager {
 
 private:
+    int localClientsIdsCounter = 0;
     int localClientsIdsCount = 0;
     int distributedClientId;
     int mpiDistributedClientsCount;
     MPI_Comm* MPI_communicator = nullptr;
     int problemNo = -1;
-    static std::mutex recvMessageMtx;
+    std::mutex recvMessageMtx;
     static bool initialized;
 
     void initialize(int argc, char **argv);

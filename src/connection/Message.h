@@ -31,6 +31,7 @@ private:
         archive & sendersDistributedId;
         archive & sendersLocalId;
         archive & messageType;
+        archive & messageTypeId;
         archive & receiversDistributedId;
         archive & requestClock;
         archive & sendersClock;
@@ -43,6 +44,7 @@ private:
     int sendersDistributedId = NOT_SET;
     int sendersLocalId = NOT_SET;
     int messageType = MessageType ::LOCK_MTX;
+    int messageTypeId = NOT_SET;
     int receiversDistributedId = NOT_SET;
     int requestClock = NOT_SET;
     int sendersClock = NOT_SET;
@@ -88,8 +90,8 @@ public:
         return receiversDistributedId;
     }
 
-    int getMessageType() const {
-        return messageType;
+    int getMessageTypeId() const {
+        return messageTypeId;
     }
 
     int getRequestClock() const {
@@ -106,7 +108,7 @@ public:
 
     void setReceiversId(int receiversDistributedId, int receiversLocalId) {
         this->receiversDistributedId = receiversDistributedId;
-        this->messageType += receiversLocalId;
+        this->messageTypeId = this->messageType + receiversLocalId;
     }
 
     void setClassName(std::string data) {

@@ -2,7 +2,7 @@
 #define NPR_MONITOR_DISTRIBUTEDMONITOR_H
 
 #include <cstring>
-#include <memory>
+//#include <memory>
 #include <thread>
 #include <condition_variable>
 #include <map>
@@ -22,7 +22,7 @@ public:
 
 private:
     int localClientId;
-    std::shared_ptr<ConnectionManager> connectionManager;
+    ConnectionManager* connectionManager;
     std::thread listenThread;
     std::map<std::string, std::mutex> mutexMap;
     std::map<std::string, std::condition_variable> cvMap;
@@ -64,7 +64,7 @@ protected:
     void log(std::string log);
 
 public:
-    explicit DistributedMonitor(std::shared_ptr<ConnectionManager> connectionManager);
+    explicit DistributedMonitor(ConnectionManager* connectionManager);
     ~DistributedMonitor();
     virtual std::string returnDataToSend() = 0;
     virtual void manageReceivedData(std::string receivedData) = 0;
