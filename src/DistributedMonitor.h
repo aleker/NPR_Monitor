@@ -22,6 +22,7 @@ private:
     std::thread listenThread;
     std::map<std::string, std::mutex> mutexMap;
     std::map<std::string, std::condition_variable> cvMap;
+    RicardAgravala algorithm;
 
     void sendMessage(std::shared_ptr<Message> message);
     int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply);
@@ -38,24 +39,16 @@ protected:
     int getUniqueConnectionNo();
     int getDistributedClientId();
     int getLocalClientId();
+    void log(std::string log);
 
 public:
-    // TODO co z tym public?
-    RicardAgravala algorithm;
-
     explicit DistributedMonitor(ConnectionManager* connectionManager);
     ~DistributedMonitor();
     virtual std::string returnDataToSend() = 0;
     virtual void manageReceivedData(std::string receivedData) = 0;
 
-    int tryToLock();
-    void goToCriticalSection();
-    std::condition_variable* getCriticalConditionVariable();
-    std::mutex* getCriticalMutex();
     void d_unlock();
-    void log(std::string log);
-
-
+    void d_lock();
 };
 
 

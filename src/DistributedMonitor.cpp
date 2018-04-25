@@ -74,33 +74,25 @@ void DistributedMonitor::freeRequests() {
     }
 }
 
-int DistributedMonitor::tryToLock() {
+void DistributedMonitor::d_lock() {
     // SEND REQUEST FOR CRITICAL SECTION
     mutexMap["state"].lock();
     algorithm.changeState(RicardAgravala::State::WAITING_FOR_REPLIES);
-    log("tryToLock() = TRY");
+    log("d_lock() = TRY");
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::LOCK_MTX);
     int thisMessageClock = this->sendMessageOnBroadcast(msg, true);
     mutexMap["state"].unlock();
 
-    // lock
-
-    // goToCriticalSection()
-    return thisMessageClock;
-}
-
-std::condition_variable* DistributedMonitor::getCriticalConditionVariable() {
-    return &cvMap["gotAllReplies"];
-}
-
-std::mutex* DistributedMonitor::getCriticalMutex() {
-    return &mutexMap["critical-section"];
-}
-
-void DistributedMonitor::goToCriticalSection() {
-    // NOW IN CRITICAL SECTION
+    while (!algorithm.checkIfGotAllReplies(thisMessageClock)) {
+        std::unique_lock<std::mutex> lock(mutexMap["critical-section"]);
+        log("WAIT");
+        if (!algorithm.checkIfGotAllReplies(thisMessageClock))
+            cvMap["gotAllReplies"].wait(lock);
+    };
     log("GLOBAL['critical-section'].lock()");
+
+    // NOW IN CRITICAL SECTION
     mutexMap["state"].lock();
     algorithm.changeState(RicardAgravala::State::IN_CRITICAL_SECTION);
     RicardAgravala::myRequest clear;
@@ -110,10 +102,8 @@ void DistributedMonitor::goToCriticalSection() {
 
 void DistributedMonitor::d_unlock() {
     // SEND MESSAGE WITH CHANGED DATA AND LEAVE CRITICAL SECTION
-    mutexMap["critical-section"].lock();
-    log("GLOBAL['critical-section'].lock()!!!!!!!!!!!ZZZ!!!!!!!!!!!!!!!!");
-//    lock.unlock();
-//    log("GLOBAL['critical-section'].unlock()");
+    mutexMap["critical-section"].unlock();
+    log("GLOBAL['critical-section'].unlock()");
     mutexMap["state"].lock();
     // send responses from requestsFromOthersQueue:
     freeRequests();
@@ -144,7 +134,7 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
             RicardAgravala::myRequest myRequest = algorithm.getMyNotFulfilledRequest();
             if (receivedMessage->getSendersClock() < myRequest.clock
                 or (receivedMessage->getSendersClock() == myRequest.clock
-                     and receivedMessage->getSendersDistributedId() < this->getDistributedClientId())
+                    and receivedMessage->getSendersDistributedId() < this->getDistributedClientId())
                 or (receivedMessage->getSendersClock() == myRequest.clock
                     and receivedMessage->getSendersDistributedId() == this->getDistributedClientId()
                     and receivedMessage->getSendersLocalId() < this->getLocalClientId())) {
