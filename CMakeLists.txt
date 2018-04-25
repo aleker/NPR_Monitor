@@ -20,6 +20,8 @@ set(SOURCE_FILES
         src/connection/Message.h
         src/MultiprocessDebugHelper.cpp
         src/MultiprocessDebugHelper.h
+        src/connection/RicardAgravala.cpp
+        src/connection/RicardAgravala.h
         )
 
 set(MPI_LIB ~/.openmpi/lib)
