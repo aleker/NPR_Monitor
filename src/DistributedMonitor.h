@@ -9,16 +9,12 @@
 #include <queue>
 #include "connection/ConnectionManager.h"
 #include "connection/Message.h"
+#include "connection/RicardAgravala.h"
 
 
 class DistributedMonitor {
     const int clientIdStep = 100;
 public:
-    enum State {
-        FREE,
-        WAITING_FOR_REPLIES,
-        IN_CRITICAL_SECTION
-    };
 
 private:
     int localClientId;
@@ -26,23 +22,10 @@ private:
     std::thread listenThread;
     std::map<std::string, std::mutex> mutexMap;
     std::map<std::string, std::condition_variable> cvMap;
-    State state = State::FREE;
-    int lamportClock = 0;
-    struct myRequest {
-        int clock = -1;
-        int answerCounter = -1;
-        myRequest() {}
-        myRequest(int clock, int answerCounter) : clock(clock), answerCounter(answerCounter) {}
-        int decrementCounter() {answerCounter--; return answerCounter;}
-    } myNotFulfilledRequest = myRequest();
-    std::queue<Message> requestsFromOthersQueue;
 
-    myRequest getMyNotFulfilledRequest();
-    void setMyNotFulfilledRequest(myRequest request);
-    void setMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter);
-
-    void updateLamportClock();
-    void updateLamportClock(int newValue);
+    void sendMessage(std::shared_ptr<Message> message);
+    int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply);
+    void sendSingleMessage(std::shared_ptr<Message> message, bool waitForReply);
 
     void listen();
     void reactForLockRequest(Message *receivedMessage);
@@ -50,27 +33,29 @@ private:
     void reactForUnlock(Message * receivedMessage);
     void sendLockResponse(int receiverId, int receiversLocalId, int requestClock);
     void freeRequests();
-    bool checkIfGotAllReplies(int clock);
-    void changeState(State state);
-
-    void sendMessage(std::shared_ptr<Message> message);
-    int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply);
-    void sendSingleMessage(std::shared_ptr<Message> message, bool waitForReply);
 
 protected:
     int getUniqueConnectionNo();
     int getDistributedClientId();
     int getLocalClientId();
-    void log(std::string log);
 
 public:
+    // TODO co z tym public?
+    RicardAgravala algorithm;
+
     explicit DistributedMonitor(ConnectionManager* connectionManager);
     ~DistributedMonitor();
     virtual std::string returnDataToSend() = 0;
     virtual void manageReceivedData(std::string receivedData) = 0;
 
-    void d_lock();
+    int tryToLock();
+    void goToCriticalSection();
+    std::condition_variable* getCriticalConditionVariable();
+    std::mutex* getCriticalMutex();
     void d_unlock();
+    void log(std::string log);
+
+
 };
 
 

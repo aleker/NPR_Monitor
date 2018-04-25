@@ -74,25 +74,33 @@ void DistributedMonitor::freeRequests() {
     }
 }
 
-void DistributedMonitor::d_lock() {
+int DistributedMonitor::tryToLock() {
     // SEND REQUEST FOR CRITICAL SECTION
     mutexMap["state"].lock();
     algorithm.changeState(RicardAgravala::State::WAITING_FOR_REPLIES);
-    log("d_lock() = TRY");
+    log("tryToLock() = TRY");
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::LOCK_MTX);
     int thisMessageClock = this->sendMessageOnBroadcast(msg, true);
     mutexMap["state"].unlock();
 
-    while (!algorithm.checkIfGotAllReplies(thisMessageClock)) {
-        std::unique_lock<std::mutex> lock(mutexMap["critical-section"]);
-        log("WAIT");
-        if (!algorithm.checkIfGotAllReplies(thisMessageClock))
-            cvMap["gotAllReplies"].wait(lock);
-    };
-    log("GLOBAL['critical-section'].lock()");
+    // lock
 
+    // goToCriticalSection()
+    return thisMessageClock;
+}
+
+std::condition_variable* DistributedMonitor::getCriticalConditionVariable() {
+    return &cvMap["gotAllReplies"];
+}
+
+std::mutex* DistributedMonitor::getCriticalMutex() {
+    return &mutexMap["critical-section"];
+}
+
+void DistributedMonitor::goToCriticalSection() {
     // NOW IN CRITICAL SECTION
+    log("GLOBAL['critical-section'].lock()");
     mutexMap["state"].lock();
     algorithm.changeState(RicardAgravala::State::IN_CRITICAL_SECTION);
     RicardAgravala::myRequest clear;
@@ -102,8 +110,10 @@ void DistributedMonitor::d_lock() {
 
 void DistributedMonitor::d_unlock() {
     // SEND MESSAGE WITH CHANGED DATA AND LEAVE CRITICAL SECTION
-    mutexMap["critical-section"].unlock();
-    log("GLOBAL['critical-section'].unlock()");
+    mutexMap["critical-section"].lock();
+    log("GLOBAL['critical-section'].lock()!!!!!!!!!!!ZZZ!!!!!!!!!!!!!!!!");
+//    lock.unlock();
+//    log("GLOBAL['critical-section'].unlock()");
     mutexMap["state"].lock();
     // send responses from requestsFromOthersQueue:
     freeRequests();

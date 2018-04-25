@@ -15,6 +15,8 @@ public:
 
     void increment() {
         DistributedMutex d_mutex(this);
+        if (d_mutex.check())
+            std::cout << "PORAZKA!!!!!";
         // STH
         int i = getDistributedClientId();
         int y = getLocalClientId();

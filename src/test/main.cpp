@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     MPI_Connection connection(argc, argv, 4);
     MPI_Connection connectionP(argc, argv, 2);
     // TESTING:
-    // MultiprocessDebugHelper::setup(15000 + connection->getDistributedClientId());
+    // MultiprocessDebugHelper::setup(15000 + connection.getDistributedClientId());
 
     TestBuffer test(&connection);
     TestBuffer test2(&connectionP);
