@@ -10,12 +10,20 @@ private:
 public:
     explicit DistributedMutex(DistributedMonitor* distributedMonitor) :
             distributedMonitor(distributedMonitor) {
-        distributedMonitor->d_lock();
+        this->d_lock();
     }
 
     ~DistributedMutex() {
+        this->d_unlock();
+    }
+
+    void d_lock() {
+        distributedMonitor->d_lock();
+    }
+    void d_unlock() {
         distributedMonitor->d_unlock();
     }
+
 };
 
 #endif //NPR_MONITOR_MUTEX_H

@@ -114,10 +114,10 @@ void DistributedMonitor::d_lock() {
     mutexMap["state"].unlock();
 
     while (!checkIfGotAllReplies(thisMessageClock)) {
-        std::unique_lock<std::mutex> lk(mutexMap["critical-section"]);
+        std::unique_lock<std::mutex> lock(mutexMap["critical-section"]);
         log("WAIT");
         if (!checkIfGotAllReplies(thisMessageClock))
-            cvMap["gotAllReplies"].wait(lk);    // odpuszcza critical-section
+            cvMap["gotAllReplies"].wait(lock);    // odpuszcza critical-section
     };
     log("GLOBAL['critical-section'].lock()");
 
@@ -143,6 +143,7 @@ void DistributedMonitor::d_unlock() {
             (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::UNLOCK_MTX, data);
     this->sendMessageOnBroadcast(msg, false);
 }
+
 
 void DistributedMonitor::sendLockResponse(int receiverId, int receiversLocalId, int requestClock) {
 //    mutexMap["critical-section"].lock();
