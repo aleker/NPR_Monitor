@@ -19,7 +19,8 @@ public:
         int i = getDistributedClientId();
         int y = getLocalClientId();
         int z = getUniqueConnectionNo();
-        this->protected_values[i]+= (i + y + z);
+        // this->protected_values[i]+= (i + y + z);
+        this->protected_values[i]+= (i + y);    //  + z);
         //
     }
 
@@ -30,11 +31,11 @@ public:
     }
 
     void printProtectedValues() {
+        std::stringstream str;
         for (int i = 0; i < 2 ; i++) {
-            std::stringstream str;
-            str << ": val[" << i << "], =" << this->protected_values[i];
-            log(str.str());
+            str << " ,val[" << i << "] =" << this->protected_values[i];
         }
+        log(str.str());
     }
 
     std::string returnDataToSend() override {

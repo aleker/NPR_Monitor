@@ -25,23 +25,29 @@ public:
         int decrementCounter() {answerCounter--; return answerCounter;}
     };
 
+    struct lastReceivedUpdatedData {
+        int clock = -1;
+        lastReceivedUpdatedData() : clock(-1) {}
+        lastReceivedUpdatedData(int clock) : clock(clock) {}
+    };
+
 private:
     myRequest myNotFulfilledRequest = myRequest();
+    lastReceivedUpdatedData lastUnlock = lastReceivedUpdatedData();
     std::queue<Message> requestsFromOthersQueue;
     int lamportClock = 0;
     State state = State::FREE;
     std::mutex myNotFulfilledRequestMtx;
 
-
 public:
     int getLamportClock();
-    void updateLamportClock();
-    void updateLamportClock(int newValue);
+    bool updateLamportClock();
+    bool updateLamportClock(int newValue);
 
     void setMyNotFulfilledRequest(myRequest request);
     void setMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter);
     myRequest getMyNotFulfilledRequest();
-    bool checkIfGotAllReplies(int clock);
+    int getNotAnsweredRepliesCount(int clock);
 
     void addReceivedRequestToQueue(Message *msg);
     Message removeReceivedRequestFromQueue();
@@ -50,7 +56,9 @@ public:
     State getState();
     void changeState(State state);
 
-    void decrementReplyCounter(int messageClock);
+    bool decrementReplyCounter(int messageClock);
+    bool setLastUnlock(int clock);
+    int getLastUnlockClock();
 
 };
 

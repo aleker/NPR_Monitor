@@ -94,6 +94,10 @@ public:
         return messageTypeId;
     }
 
+    int getMessageType() const {
+        return messageType;
+    }
+
     int getRequestClock() const {
         return requestClock;
     }

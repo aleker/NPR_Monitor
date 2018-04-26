@@ -4,12 +4,15 @@
 
 #include "RicardAgravala.h"
 
-void RicardAgravala::updateLamportClock() {
+bool RicardAgravala::updateLamportClock() {
     this->lamportClock++;
+    return true;
 }
 
-void RicardAgravala::updateLamportClock(int newValue) {
-    this->lamportClock = std::max(this->lamportClock, newValue) + 1;
+bool RicardAgravala::updateLamportClock(int newValue) {
+    int lamport = this->lamportClock;
+    this->lamportClock = std::max(lamport, newValue) + 1;
+    return newValue >= lamport;
 }
 
 RicardAgravala::myRequest RicardAgravala::getMyNotFulfilledRequest() {
@@ -34,12 +37,12 @@ void RicardAgravala::changeState(State state) {
     this->state = state;
 }
 
-bool RicardAgravala::checkIfGotAllReplies(int clock) {
+int RicardAgravala::getNotAnsweredRepliesCount(int clock) {
     myRequest myRequest = getMyNotFulfilledRequest();
     if (clock == myRequest.clock) {
-        return (myRequest.answerCounter <= 0);
+        return myRequest.answerCounter;
     }
-    else return true;
+    else return -1;
 }
 
 int RicardAgravala::getLamportClock() {
@@ -50,12 +53,15 @@ RicardAgravala::State RicardAgravala::getState() {
     return this->state;
 }
 
-void RicardAgravala::decrementReplyCounter(int messageClock) {
+bool RicardAgravala::decrementReplyCounter(int messageClock) {
+    bool decremented = false;
     myNotFulfilledRequestMtx.lock();
     if (myNotFulfilledRequest.clock == messageClock) {
         myNotFulfilledRequest.decrementCounter();
+        decremented = true;
     }
     myNotFulfilledRequestMtx.unlock();
+    return decremented;
 }
 
 void RicardAgravala::addReceivedRequestToQueue(Message *msg) {
@@ -70,4 +76,14 @@ Message RicardAgravala::removeReceivedRequestFromQueue() {
 
 bool RicardAgravala::isRequestsFromOthersQueueEmpty() {
     return requestsFromOthersQueue.empty();
+}
+
+bool RicardAgravala::setLastUnlock(int clock) {
+    if (lastUnlock.clock > clock) return false;
+    lastUnlock = lastReceivedUpdatedData(clock);
+    return true;
+}
+
+int RicardAgravala::getLastUnlockClock() {
+    return lastUnlock.clock;
 }

@@ -32,7 +32,8 @@ private:
     void reactForLockRequest(Message *receivedMessage);
     void reactForLockResponse(Message *receivedMessage);
     void reactForUnlock(Message * receivedMessage);
-    void sendLockResponse(int receiverId, int receiversLocalId, int requestClock);
+    void sendLockResponse(int receiverId, int receiversLocalId, int requestClock, bool waitForUnlock = false);
+    void sendUnlockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data);
     void freeRequests();
 
 protected:
