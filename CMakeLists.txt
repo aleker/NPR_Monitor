@@ -14,7 +14,7 @@ set(SOURCE_FILES
         src/mutex/DistributedMutex.h
         src/mutex/DistributedConditionVariable.h
         src/test/TestBuffer.h
-        src/connection/ConnectionManager.h
+        src/connection/ConnectionInterface.h
         src/connection/MPI_Connection.cpp
         src/connection/MPI_Connection.h
         src/connection/Message.h

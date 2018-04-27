@@ -10,7 +10,7 @@ private:
     int protected_values[2] = {0, 0};
 
 public:
-    explicit TestBuffer(ConnectionManager* connectionManager)
+    explicit TestBuffer(ConnectionInterface* connectionManager)
             : DistributedMonitor(connectionManager) {}
 
     void increment() {

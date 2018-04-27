@@ -4,9 +4,9 @@
 #include <mutex>
 #include "Message.h"
 
-class ConnectionManager {
+class ConnectionInterface {
 public:
-    virtual ~ConnectionManager() = default;
+    virtual ~ConnectionInterface() = default;
     virtual int getDistributedClientId() = 0;
     virtual int getDistributedClientsCount() = 0;
     virtual int getUniqueConnectionNo() = 0;

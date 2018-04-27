@@ -2,7 +2,7 @@
 #include "DistributedMonitor.h"
 
 
-DistributedMonitor::DistributedMonitor(ConnectionManager* connectionManager) :
+DistributedMonitor::DistributedMonitor(ConnectionInterface* connectionManager) :
         connectionManager(connectionManager) {
     this->localClientId = this->connectionManager->addNewLocalClient() * clientIdStep;
     std::stringstream str;

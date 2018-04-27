@@ -7,7 +7,7 @@
 #include <condition_variable>
 #include <map>
 #include <queue>
-#include "connection/ConnectionManager.h"
+#include "connection/ConnectionInterface.h"
 #include "connection/Message.h"
 #include "connection/RicardAgravala.h"
 #include "Logger.h"
@@ -20,7 +20,7 @@ public:
 
 private:
     int localClientId;
-    ConnectionManager* connectionManager;
+    ConnectionInterface* connectionManager;
     std::thread listenThread;
     std::map<std::string, std::mutex> mutexMap;
     std::map<std::string, std::condition_variable> cvMap;
@@ -46,7 +46,7 @@ protected:
     void log(std::string log);
 
 public:
-    explicit DistributedMonitor(ConnectionManager* connectionManager);
+    explicit DistributedMonitor(ConnectionInterface* connectionManager);
     ~DistributedMonitor();
     virtual std::string returnDataToSend() = 0;
     virtual void manageReceivedData(std::string receivedData) = 0;

@@ -5,10 +5,10 @@
 #include <mpi.h>
 #include <mutex>
 
-#include "ConnectionManager.h"
+#include "ConnectionInterface.h"
 #include "Message.h"
 
-class MPI_Connection : public ConnectionManager {
+class MPI_Connection : public ConnectionInterface {
 
 private:
     int localClientsIdsCounter = 0;
