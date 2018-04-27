@@ -14,6 +14,7 @@
 
 
 class DistributedMonitor {
+    // TODO change step to smaller
     const int clientIdStep = 100;
 public:
 
