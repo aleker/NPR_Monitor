@@ -10,6 +10,7 @@
 #include "connection/ConnectionManager.h"
 #include "connection/Message.h"
 #include "connection/RicardAgravala.h"
+#include "Logger.h"
 
 
 class DistributedMonitor {
@@ -23,6 +24,7 @@ private:
     std::map<std::string, std::mutex> mutexMap;
     std::map<std::string, std::condition_variable> cvMap;
     RicardAgravala algorithm;
+    Logger logger;
 
     void sendMessage(std::shared_ptr<Message> message);
     int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply);
@@ -32,15 +34,17 @@ private:
     void reactForLockRequest(Message *receivedMessage);
     void reactForLockResponse(Message *receivedMessage);
     void reactForUnlock(Message * receivedMessage);
-    void sendLockResponse(int receiverId, int receiversLocalId, int requestClock, bool waitForUnlock = false);
-    void sendUnlockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data);
+    void sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data = "");
     void freeRequests();
 
 protected:
+    // TODO move to private
     int getUniqueConnectionNo();
     int getDistributedClientId();
     int getLocalClientId();
     void log(std::string log);
+
+
 
 public:
     explicit DistributedMonitor(ConnectionManager* connectionManager);

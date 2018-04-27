@@ -10,14 +10,14 @@ int main(int argc, char *argv[]) {
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection.getDistributedClientId());
 
-    //TestBuffer test(&connection);
+    TestBuffer test(&connection);
     TestBuffer test2(&connectionP);
     TestBuffer test3(&connectionP);
 
     // TEST MULTITHREADING
     int loopsCount = 3000;
     while(loopsCount > 0) {
-        //test.increment();
+        test.increment();
         test2.increment();
         test3.increment();
         loopsCount--;
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     std::cout << "END\n";
     std::chrono::seconds sec = std::chrono::seconds(6);
     std::this_thread::sleep_for(sec);
-    //test.printProtectedValues();
+    test.printProtectedValues();
 
     sec = std::chrono::seconds(1);
     std::this_thread::sleep_for(sec);

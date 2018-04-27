@@ -22,6 +22,7 @@ set(SOURCE_FILES
         src/MultiprocessDebugHelper.h
         src/connection/RicardAgravala.cpp
         src/connection/RicardAgravala.h
+        src/Logger.h
         )
 
 set(MPI_LIB ~/.openmpi/lib)

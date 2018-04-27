@@ -5,27 +5,27 @@
 #include "RicardAgravala.h"
 
 bool RicardAgravala::updateLamportClock() {
+    std::lock_guard<std::mutex> lock(lamportMtx);
     this->lamportClock++;
     return true;
 }
 
 bool RicardAgravala::updateLamportClock(int newValue) {
+    std::lock_guard<std::mutex> lock(lamportMtx);
     int lamport = this->lamportClock;
     this->lamportClock = std::max(lamport, newValue) + 1;
     return newValue >= lamport;
 }
 
 RicardAgravala::myRequest RicardAgravala::getMyNotFulfilledRequest() {
-    myNotFulfilledRequestMtx.lock();
+    std::lock_guard<std::mutex> lock(myNotFulfilledRequestMtx);
     myRequest request = myNotFulfilledRequest;
-    myNotFulfilledRequestMtx.unlock();
     return request;
 }
 
 void RicardAgravala::setMyNotFulfilledRequest(myRequest request) {
-    myNotFulfilledRequestMtx.lock();
+    std::lock_guard<std::mutex> lock(myNotFulfilledRequestMtx);
     myNotFulfilledRequest = request;
-    myNotFulfilledRequestMtx.unlock();
 }
 
 void RicardAgravala::setMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter) {
@@ -55,12 +55,11 @@ RicardAgravala::State RicardAgravala::getState() {
 
 bool RicardAgravala::decrementReplyCounter(int messageClock) {
     bool decremented = false;
-    myNotFulfilledRequestMtx.lock();
+    std::lock_guard<std::mutex> lock(myNotFulfilledRequestMtx);
     if (myNotFulfilledRequest.clock == messageClock) {
         myNotFulfilledRequest.decrementCounter();
         decremented = true;
     }
-    myNotFulfilledRequestMtx.unlock();
     return decremented;
 }
 
@@ -78,12 +77,3 @@ bool RicardAgravala::isRequestsFromOthersQueueEmpty() {
     return requestsFromOthersQueue.empty();
 }
 
-bool RicardAgravala::setLastUnlock(int clock) {
-    if (lastUnlock.clock > clock) return false;
-    lastUnlock = lastReceivedUpdatedData(clock);
-    return true;
-}
-
-int RicardAgravala::getLastUnlockClock() {
-    return lastUnlock.clock;
-}
