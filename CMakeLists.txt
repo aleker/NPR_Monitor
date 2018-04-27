@@ -7,6 +7,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
 find_package(MPI REQUIRED)
 
+# TODO dodać sources
 set(SOURCE_FILES
         src/test/main.cpp
         src/DistributedMonitor.cpp
@@ -23,6 +24,8 @@ set(SOURCE_FILES
         src/RicardAgravala.cpp
         src/RicardAgravala.h
         src/Logger.h
+        src/connection/ConnectionManager.h
+        src/connection/ConnectionManager.cpp
         )
 
 set(MPI_LIB ~/.openmpi/lib)
