@@ -12,7 +12,6 @@ public:
     virtual int getUniqueConnectionNo() = 0;
     virtual int getLocalClientsCount() = 0;
     virtual int addNewLocalClient() = 0;
-    virtual std::mutex* getReceiveMutex() = 0;
 
     virtual void sendMessage(std::shared_ptr<Message> message) = 0;
     virtual void sendMessageOnBroadcast(std::shared_ptr<Message> message) = 0;

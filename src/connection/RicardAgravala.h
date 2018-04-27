@@ -32,6 +32,8 @@ private:
     State state = State::FREE;
     std::mutex myNotFulfilledRequestMtx;
     std::mutex lamportMtx;
+    int responsesSentByMeCounter = 0;
+    int lamportClockOfLastReceivedUnlock = 0;
 
 public:
     int getLamportClock();
@@ -51,6 +53,13 @@ public:
     void changeState(State state);
 
     bool decrementReplyCounter(int messageClock);
+
+    void incrementResponsesSentByMeCounter();
+    void decrementResponsesSentByMeCounter();
+    int getResponsesSentByMeCounter();
+    int getLamportClockOfLastReceivedUnlock();
+    void setLamportClockOfLastReceivedUnlock(int newLamport);
+
 
 };
 

@@ -14,12 +14,14 @@ int main(int argc, char *argv[]) {
     TestBuffer test2(&connectionP);
     TestBuffer test3(&connectionP);
 
+
     // TEST MULTITHREADING
-    int loopsCount = 3000;
+    int loopsCount = 10;
     while(loopsCount > 0) {
         test.increment();
         test2.increment();
         test3.increment();
+
         loopsCount--;
     }
 

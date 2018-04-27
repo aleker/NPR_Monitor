@@ -5,6 +5,9 @@
 #ifndef NPR_MONITOR_LOGGER_H
 #define NPR_MONITOR_LOGGER_H
 
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/tee.hpp>
+
 #include <string>
 #include <mutex>
 #include <iostream>
@@ -13,29 +16,22 @@
 class Logger {
 private:
     std::mutex logMtx;
-    std::ofstream myfile;
-    std::streambuf *backupBuf, *psbuf;
 
     void setupLogFile(std::string fileName) {
-        myfile.open(fileName);
-        backupBuf = std::cout.rdbuf();      //save old buf
-        psbuf = myfile.rdbuf();             // get file's streambuf
-        std::cout.rdbuf(psbuf);             // assign streambuf to cout
+        // fclose(fopen(fileName.c_str(), "w"));
+        // freopen(fileName.c_str(), "a+", stdout);
     }
 
 public:
     Logger() {
-        // setupLogFile("/home/ola/CLionProjects/NPR_Monitor/src/log.txt");
+        setupLogFile("log.txt");   // /home/ola/CLionProjects/NPR_Monitor/src/
     }
 
     Logger(std::string fileName) {
         setupLogFile(fileName);
     }
 
-    ~Logger() {
-        std::cout.rdbuf(backupBuf);        // restore cout's original streambuf
-        myfile.close();
-    }
+    ~Logger() {}
 
     void log(std::string log) {
         std::lock_guard<std::mutex> lock(logMtx);

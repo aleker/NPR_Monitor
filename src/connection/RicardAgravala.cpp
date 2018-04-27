@@ -77,3 +77,23 @@ bool RicardAgravala::isRequestsFromOthersQueueEmpty() {
     return requestsFromOthersQueue.empty();
 }
 
+void RicardAgravala::incrementResponsesSentByMeCounter() {
+    responsesSentByMeCounter++;
+}
+
+void RicardAgravala::decrementResponsesSentByMeCounter() {
+    responsesSentByMeCounter--;
+}
+
+int RicardAgravala::getResponsesSentByMeCounter() {
+    return responsesSentByMeCounter;
+}
+
+int RicardAgravala::getLamportClockOfLastReceivedUnlock() {
+    return lamportClockOfLastReceivedUnlock;
+}
+
+void RicardAgravala::setLamportClockOfLastReceivedUnlock(int newLamport) {
+    lamportClockOfLastReceivedUnlock = newLamport;
+}
+

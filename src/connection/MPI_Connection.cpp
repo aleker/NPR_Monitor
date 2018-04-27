@@ -140,9 +140,6 @@ bool MPI_Connection::tryToReceive(int tag) {
     return tryToReceive(tag, MPI_ANY_SOURCE);
 }
 
-std::mutex* MPI_Connection::getReceiveMutex() {
-    return &recvMessageMtx;
-}
 
 bool MPI_Connection::isMPICommunicatorNotNull() {
     return (MPI_communicator != nullptr);

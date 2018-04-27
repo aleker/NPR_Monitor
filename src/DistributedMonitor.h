@@ -24,7 +24,7 @@ private:
     std::map<std::string, std::mutex> mutexMap;
     std::map<std::string, std::condition_variable> cvMap;
     RicardAgravala algorithm;
-    Logger logger;
+    std::unique_ptr<Logger> logger;
 
     void sendMessage(std::shared_ptr<Message> message);
     int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply);
@@ -43,8 +43,6 @@ protected:
     int getDistributedClientId();
     int getLocalClientId();
     void log(std::string log);
-
-
 
 public:
     explicit DistributedMonitor(ConnectionManager* connectionManager);
