@@ -6,7 +6,7 @@
 #include <mutex>
 
 #include "ConnectionInterface.h"
-#include "Message.h"
+#include "../Message.h"
 
 class MPI_Connection : public ConnectionInterface {
 

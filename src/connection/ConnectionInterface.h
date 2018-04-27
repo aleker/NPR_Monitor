@@ -2,7 +2,7 @@
 #define NPR_MONITOR_CONNECTIONMANAGER_H
 
 #include <mutex>
-#include "Message.h"
+#include "../Message.h"
 
 class ConnectionInterface {
 public:

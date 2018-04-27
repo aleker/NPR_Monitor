@@ -8,8 +8,8 @@
 #include <map>
 #include <queue>
 #include "connection/ConnectionInterface.h"
-#include "connection/Message.h"
-#include "connection/RicardAgravala.h"
+#include "Message.h"
+#include "RicardAgravala.h"
 #include "Logger.h"
 
 

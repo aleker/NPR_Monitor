@@ -17,11 +17,11 @@ set(SOURCE_FILES
         src/connection/ConnectionInterface.h
         src/connection/MPI_Connection.cpp
         src/connection/MPI_Connection.h
-        src/connection/Message.h
+        src/Message.h
         src/MultiprocessDebugHelper.cpp
         src/MultiprocessDebugHelper.h
-        src/connection/RicardAgravala.cpp
-        src/connection/RicardAgravala.h
+        src/RicardAgravala.cpp
+        src/RicardAgravala.h
         src/Logger.h
         )
 
