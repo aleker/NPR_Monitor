@@ -17,18 +17,28 @@ private:
     int protected_values[2] = {0, 0};
 
 public:
-    explicit TestBuffer(ConnectionInterface* connectionManager)
-            : DistributedMonitor(connectionManager) {}
+    explicit TestBuffer(ConnectionInterface* connection)
+            : DistributedMonitor(connection) {}
 
     void increment() {
+        /*
+         * d_mutex->d_lock() - distributed mutex lock
+         */
         d_mutex->d_lock();
-        // STH
+        /*
+         * critical section entry
+         */
         std::random_device rd;
         int i = getId();
         int randVal = rd();
         this->protected_values[i]+= (randVal);
-        //
+        /*
+         * prepareDataToSend() - REQUIRED after critical section, between d_lock() and d_unlock()
+         */
         prepareDataToSend();
+        /*
+         * d_mutex->d_unlock() - distributed mutex unlock
+         */
         d_mutex->d_unlock();
     }
 
@@ -65,6 +75,21 @@ public:
     }
 
 };
+
+/*
+ * USAGE EXAMPLE
+ * MPI_Connection connection(argc, argv, 4);
+ *
+ * TestBuffer test(&connection);
+ * TestBuffer test2(&connection);
+ *
+ * test.increment();
+ * test2.increment();
+ *
+ * test.printProtectedValues();
+ * test2.printProtectedValues();
+ *
+ */
 
 #endif //NPR_MONITOR_TEST_H
 

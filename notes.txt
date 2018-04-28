@@ -5,7 +5,7 @@ PROJEKT:
 2) budzenie/uśpienie wątków
 3) mechanizm zmiennych warunkowych
 
-class Buffer : public Mój_Monitor {
+class ConsumentProducerQueue : public Mój_Monitor {
 protected:
     conditional c1, c2;
 public:
