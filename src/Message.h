@@ -54,7 +54,9 @@ public:
     enum MessageType {
         LOCK_MTX,
         LOCK_RESPONSE,
-        UNLOCK_MTX
+        UNLOCK_MTX,
+        UNLOCK_MTX_WAIT,
+        SIGNAL
     };
 
     Message() = default;

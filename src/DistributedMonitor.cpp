@@ -58,9 +58,9 @@ void DistributedMonitor::sendSingleMessage(std::shared_ptr<Message> message, boo
     sendMessage(message);
 }
 
-int DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply) {
+int DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply, int sendersClock) {
     algorithm.updateLamportClock();
-    int lamportClock = algorithm.getLamportClock();
+    int lamportClock = (sendersClock == -1) ? algorithm.getLamportClock() : sendersClock;
     message->setSendersClock(lamportClock);
     int clientsCount = connectionManager->getDistributedClientsCount() * connectionManager->getLocalClientsCount();
     if (waitForReply)
@@ -91,6 +91,19 @@ void DistributedMonitor::sendLockResponse(int receiverId, int receiversLocalId, 
     this->sendSingleMessage(msg, false);
 }
 
+void DistributedMonitor::sendUnLockMessages() {
+    std::string data = returnDataToSend();
+    std::shared_ptr<Message> msg = std::make_shared<Message>
+            (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::UNLOCK_MTX, data);
+    this->sendMessageOnBroadcast(msg, false);
+}
+
+void DistributedMonitor::sendUnLockAndWaitMessages() {
+    std::shared_ptr<Message> msg = std::make_shared<Message>
+            (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::UNLOCK_MTX_WAIT, algorithm.getMyNotFulfilledRequest().clock);
+    this->sendMessageOnBroadcast(msg, false);
+}
+
 void DistributedMonitor::freeRequests() {
     while (!algorithm.isRequestsFromOthersQueueEmpty()) {
         Message message = algorithm.removeReceivedRequestFromQueue();
@@ -98,13 +111,13 @@ void DistributedMonitor::freeRequests() {
     }
 }
 
-void DistributedMonitor::d_lock() {
+void DistributedMonitor::d_lock(int sendersClock) {
     // SEND REQUEST FOR CRITICAL SECTION
     mutexMap["state"].lock();
     algorithm.changeState(RicardAgravala::State::WAITING_FOR_REPLIES);
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::LOCK_MTX);
-    int thisMessageClock = this->sendMessageOnBroadcast(msg, true);
+    int thisMessageClock = this->sendMessageOnBroadcast(msg, true, sendersClock);
     mutexMap["state"].unlock();
 
     // CRITICAL SECTION ENTRY
@@ -139,15 +152,40 @@ void DistributedMonitor::d_unlock() {
     log("---CRITICAL SECTION : EXIT ---");
 
     // send unlock messages with updated data
-    std::string data = returnDataToSend();
-    std::shared_ptr<Message> msg = std::make_shared<Message>
-            (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::UNLOCK_MTX, data);
-    this->sendMessageOnBroadcast(msg, false);
+    sendUnLockMessages();
 
     // send responses from requestsFromOthersQueue:
     mutexMap["state"].lock();
     freeRequests();
     algorithm.changeState(RicardAgravala::State::FREE);
+    mutexMap["state"].unlock();
+}
+
+void DistributedMonitor::d_wait() {
+    // SEND MESSAGE WITH CHANGED DATA AND LEAVE CRITICAL SECTION
+    log("---CRITICAL SECTION : EXIT (WAIT) ---");
+
+    // send unlock messages with wait info
+    sendUnLockAndWaitMessages();
+
+    // send responses from requestsFromOthersQueue:
+    mutexMap["state"].lock();
+    freeRequests();
+    algorithm.changeState(RicardAgravala::State::FREE);
+    mutexMap["state"].unlock();
+}
+
+void DistributedMonitor::d_notifyAll() {
+    // TODO notify only on the same conditional variable
+    mutexMap["state"].lock();
+    while (!waitingThreadsVector.empty()) {
+        WaitInfo wait = waitingThreadsVector.back();
+        waitingThreadsVector.pop_back();
+        std::shared_ptr<Message> msg = std::make_shared<Message>
+                (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::SIGNAL, wait.waitMessageClock);
+        msg->setReceiversId(wait.distributedId, wait.localId);
+        this->sendSingleMessage(msg, false);
+    }
     mutexMap["state"].unlock();
 }
 
@@ -186,6 +224,29 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
     mutexMap["state"].unlock();
 }
 
+void DistributedMonitor::addSenderToWaitThreadList(int localId, int distributedId, int originalRequestClock, int waitMessageClock) {
+    mutexMap["state"].lock();
+    waitingThreadsVector.push_back(WaitInfo(localId, distributedId, originalRequestClock, waitMessageClock));
+    mutexMap["state"].unlock();
+}
+
+void DistributedMonitor::removeThisThreadFromWaitingList(int localId, int distributedId) {
+    for (int i = 0; i < waitingThreadsVector.size(); i++) {
+        if (waitingThreadsVector.at(i).localId == localId && waitingThreadsVector.at(i).distributedId == distributedId) {
+            waitingThreadsVector.erase(waitingThreadsVector.begin() + i);
+            // TODO break?
+        }
+    }
+}
+
+void DistributedMonitor::signalIfAllUnlocksReceived() {
+    if (algorithm.getResponsesSentByMeCounter() <= 0) {
+        mutexMap["unlock-response"].lock();
+        mutexMap["unlock-response"].unlock();
+        cvMap["receivedAllUnlocks"].notify_all();
+    }
+}
+
 void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
     // decrement response counter
     bool responseForMyCurrentRequest = algorithm.decrementReplyCounter(receivedMessage->getRequestClock());
@@ -220,11 +281,22 @@ void DistributedMonitor::reactForUnlock(Message *receivedMessage) {
     }
 
     // notify if all unlocks received
-    if (algorithm.getResponsesSentByMeCounter() <= 0) {
-        mutexMap["unlock-response"].lock();
-        mutexMap["unlock-response"].unlock();
-        cvMap["receivedAllUnlocks"].notify_all();
-    }
+    signalIfAllUnlocksReceived();
+}
+
+void DistributedMonitor::reactForWait(Message *receivedMessage) {
+    // decrement required unlocks counter
+    algorithm.decrementResponsesSentByMeCounter();
+
+    addSenderToWaitThreadList(receivedMessage->getSendersLocalId(), receivedMessage->getSendersDistributedId(),
+                              receivedMessage->getRequestClock(), receivedMessage->getSendersClock());
+
+    // notify if all unlocks received
+    signalIfAllUnlocksReceived();
+}
+
+void DistributedMonitor::reactForSignalMessage(Message *receivedMessage) {
+    d_lock(receivedMessage->getRequestClock());
 }
 
 /*
@@ -235,6 +307,7 @@ void DistributedMonitor::listen() {
     Message message;
     while(true) {
         int localId = getLocalClientId();
+        // TODO uniform
         if (connectionManager->tryToReceive(Message::MessageType::LOCK_MTX + localId)) {
             message = connectionManager->receiveMessage(Message::MessageType::LOCK_MTX + localId);
             std::stringstream str;
@@ -243,6 +316,7 @@ void DistributedMonitor::listen() {
             log(str.str());
             algorithm.updateLamportClock(message.getSendersClock());
             reactForLockRequest(&message);
+            removeThisThreadFromWaitingList(message.getSendersLocalId(), message.getSendersDistributedId());
         }
         if (connectionManager->tryToReceive(Message::MessageType::LOCK_RESPONSE + localId)) {
             message = connectionManager->receiveMessage(Message::MessageType::LOCK_RESPONSE + localId);
@@ -263,8 +337,29 @@ void DistributedMonitor::listen() {
             algorithm.updateLamportClock(message.getSendersClock());
             reactForUnlock(&message);
         }
+        if (connectionManager->tryToReceive(Message::MessageType::UNLOCK_MTX_WAIT + localId)) {
+            message = connectionManager->receiveMessage(Message::MessageType::UNLOCK_MTX_WAIT + localId);
+            std::stringstream str;
+            str << "received UNLOCK_MTX_WAIT! (his wait in " << message.getRequestClock() << "): from " <<
+                message.getSendersLocalId() << ":" << message.getSendersDistributedId();
+            log(str.str());
+            algorithm.updateLamportClock(message.getSendersClock());
+            reactForWait(&message);
+        }
+        if (connectionManager->tryToReceive(Message::MessageType::SIGNAL + localId)) {
+            message = connectionManager->receiveMessage(Message::MessageType::SIGNAL + localId);
+            std::stringstream str;
+            str << "received SIGNAL! (my wait in " << message.getRequestClock() << "): from " <<
+                message.getSendersLocalId() << ":" << message.getSendersDistributedId();
+            log(str.str());
+            algorithm.updateLamportClock(message.getSendersClock());
+            reactForSignalMessage(&message);
+        }
     }
 }
+
+
+
 
 
 

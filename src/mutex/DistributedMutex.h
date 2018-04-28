@@ -4,10 +4,9 @@
 #include "../DistributedMonitor.h"
 
 class DistributedMutex {
-private:
+public:
     DistributedMonitor* distributedMonitor;
 
-public:
     explicit DistributedMutex(DistributedMonitor* distributedMonitor) :
             distributedMonitor(distributedMonitor) {
         this->d_lock();
@@ -20,6 +19,7 @@ public:
     void d_lock() {
         distributedMonitor->d_lock();
     }
+
     void d_unlock() {
         distributedMonitor->d_unlock();
     }

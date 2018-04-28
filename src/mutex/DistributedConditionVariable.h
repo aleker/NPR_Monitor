@@ -6,21 +6,17 @@
 
 class DistributedConditionVariable {
 private:
-    DistributedMutex *mtx;
-    std::condition_variable cond;
-    std::unique_lock<std::mutex> lock;
+    DistributedMutex *d_mtx;
 
 public:
-    explicit DistributedConditionVariable(DistributedMutex *mtx) : mtx(mtx) {
+    explicit DistributedConditionVariable(DistributedMutex *d_mtx) : d_mtx(d_mtx) { }
 
+    void d_wait() {
+        d_mtx->distributedMonitor->d_wait();
     }
 
-    void wait() {
-        cond.wait(lock);
-    }
-
-    void notifyAll() {
-        cond.notify_all();
+    void d_notifyAll() {
+        d_mtx->distributedMonitor->d_notifyAll();
     }
 
 };
