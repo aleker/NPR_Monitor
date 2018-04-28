@@ -2,8 +2,15 @@
 #define NPR_MONITOR_TEST_H
 
 #include <iostream>
+#include <random>
 #include "../DistributedMonitor.h"
 #include "../mutex/DistributedMutex.h"
+
+/*
+ * Example of DistributedMonitor implementation
+ *
+ * protected_values[2] - two dimensional SHARED array
+ */
 
 class TestBuffer : public DistributedMonitor {
 private:
@@ -14,20 +21,23 @@ public:
             : DistributedMonitor(connectionManager) {}
 
     void increment() {
-        DistributedMutex d_mutex(this);
+        d_mutex->d_lock();
         // STH
-        int i = getDistributedClientId();
-        int y = getLocalClientId();
-        int z = getUniqueConnectionNo();
-        // this->protected_values[i]+= (i + y + z);
-        this->protected_values[i]+= (i + y);    //  + z);
+        std::random_device rd;
+        int i = getId();
+        int randVal = rd();
+        this->protected_values[i]+= (randVal);
         //
+        prepareDataToSend();
+        d_mutex->d_unlock();
     }
 
     int getProtectedValues(int i) {
-        DistributedMutex d_mutex(this);
+        d_mutex->d_lock();
         int value = this->protected_values[i];
+        d_mutex->d_unlock();
         return value;
+
     }
 
     void printProtectedValues() {

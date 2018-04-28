@@ -66,24 +66,6 @@ void MPI_Connection::sendMessage(std::shared_ptr<Message> message) {
     }
 }
 
-void MPI_Connection::sendMessageOnBroadcast(std::shared_ptr<Message> message) {
-    std::string serializedMessage = Message::serializeMessage<Message>(*message.get());
-    if (isMPICommunicatorNotNull()) {
-        MPI_Bcast((void *) serializedMessage.c_str(),
-                  serializedMessage.length(),
-                  MPI_BYTE,
-                  message->getSendersDistributedId(),
-                  *MPI_communicator);
-    }
-    else {
-        MPI_Bcast((void *) serializedMessage.c_str(),
-                  serializedMessage.length(),
-                  MPI_BYTE,
-                  message->getSendersDistributedId(),
-                  MPI_COMM_WORLD);
-    }
-}
-
 Message MPI_Connection::receiveMessage() {
     return receiveMessage(MPI_ANY_TAG, MPI_ANY_SOURCE);
 }

@@ -2,6 +2,7 @@
 // Created by ola on 25.04.18.
 //
 
+#include <iostream>
 #include "RicardAgravala.h"
 
 bool RicardAgravala::updateLamportClock() {

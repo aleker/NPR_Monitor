@@ -1,7 +1,6 @@
-#ifndef NPR_MONITOR_CONNECTIONMANAGER_H
-#define NPR_MONITOR_CONNECTIONMANAGER_H
+#ifndef NPR_MONITOR_CONNECTIONINTERFACE_H
+#define NPR_MONITOR_CONNECTIONINTERFACE_H
 
-#include <mutex>
 #include "../Message.h"
 
 class ConnectionInterface {
@@ -14,7 +13,6 @@ public:
     virtual int addNewLocalClient() = 0;
 
     virtual void sendMessage(std::shared_ptr<Message> message) = 0;
-    virtual void sendMessageOnBroadcast(std::shared_ptr<Message> message) = 0;
     virtual Message receiveMessage() = 0;
     virtual Message receiveMessage(int tag) = 0;
     virtual Message receiveMessage(int tag, int sourceId) = 0;
@@ -22,4 +20,4 @@ public:
     virtual bool tryToReceive(int tag, int sourceId) = 0;
 };
 
-#endif //NPR_MONITOR_CONNECTIONMANAGER_H
+#endif //NPR_MONITOR_CONNECTIONINTERFACE_H
