@@ -27,6 +27,7 @@ protected:
     // TODO delete
     int getId();
     void log(std::string log);
+
     virtual std::string returnDataToSend() = 0;
     virtual void manageReceivedData(std::string receivedData) = 0;
 

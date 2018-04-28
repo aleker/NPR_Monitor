@@ -110,7 +110,7 @@ int MPI_Connection::getUniqueConnectionNo() {
 bool MPI_Connection::tryToReceive(int tag, int sourceId) {
     MPI_Status senderStatus;
     int flag;
-    // nonblocking test for data
+    // nonblocking examples for data
     if (isMPICommunicatorNotNull())
         MPI_Iprobe(sourceId, tag, *MPI_communicator, &flag,  &senderStatus);
     else
