@@ -78,11 +78,23 @@ int DistributedMonitor::sendMessageOnBroadcast(std::shared_ptr<Message> message,
     return lamportClock;
 }
 
+
+void DistributedMonitor::sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data) {
+    std::shared_ptr<Message> msg = std::make_shared<Message>
+            (this->getDistributedClientId(),
+             this->getLocalClientId(),
+             Message::MessageType::LOCK_RESPONSE,
+             requestClock,
+             data);
+    msg->setReceiversId(receiverId, receiversLocalId);
+    algorithm.incrementResponsesSentByMeCounter();      // we have to get unlock for this response
+    this->sendSingleMessage(msg, false);
+}
+
 void DistributedMonitor::freeRequests() {
     while (!algorithm.isRequestsFromOthersQueueEmpty()) {
         Message message = algorithm.removeReceivedRequestFromQueue();
-        std::string data = returnDataToSend();
-        sendLockResponse(message.getSendersDistributedId(), message.getSendersLocalId(), message.getSendersClock(), data);
+        sendLockResponse(message.getSendersDistributedId(), message.getSendersLocalId(), message.getSendersClock());
     }
 }
 
@@ -139,18 +151,6 @@ void DistributedMonitor::d_unlock() {
     mutexMap["state"].unlock();
 }
 
-void DistributedMonitor::sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data) {
-    std::shared_ptr<Message> msg = std::make_shared<Message>
-            (this->getDistributedClientId(),
-             this->getLocalClientId(),
-             Message::MessageType::LOCK_RESPONSE,
-             requestClock,
-             data);
-    msg->setReceiversId(receiverId, receiversLocalId);
-    algorithm.incrementResponsesSentByMeCounter();      // we have to get unlock for this response
-    this->sendSingleMessage(msg, false);
-}
-
 void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
     mutexMap["state"].lock();
     switch (algorithm.getState()) {
@@ -197,12 +197,6 @@ void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
     if (!responseForMyCurrentRequest) {
         std::cerr << "Response not for current request!\n";
         return;
-    }
-
-    // check if response with updated data
-    if (!receivedMessage->getData().compare("")) {
-        // response with data
-        manageReceivedData(receivedMessage->getData());
     }
 
     // notify if last needed response

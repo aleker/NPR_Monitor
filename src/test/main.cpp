@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 
 #include "TestBuffer.h"
 #include "../MultiprocessDebugHelper.h"
@@ -16,7 +17,7 @@ int main(int argc, char *argv[]) {
 
 
     // TEST MULTITHREADING
-    int loopsCount = 10;
+    int loopsCount = 1500;
     while(loopsCount > 0) {
         test.increment();
         test2.increment();
