@@ -4,18 +4,20 @@
 #include <mutex>
 #include <condition_variable>
 #include <memory>
-
+#include <utility>
 #include "DistributedMutex.h"
 #include "../connection/ConnectionManager.h"
 
 class DistributedConditionVariable {
 private:
+    std::string id_name;
     std::shared_ptr<DistributedMutex> d_mtx;
     std::shared_ptr<ConnectionManager> connectionManager{};
     std::condition_variable l_cond;
 
 public:
-    explicit DistributedConditionVariable(std::shared_ptr<DistributedMutex> d_mtx) : d_mtx(std::move(d_mtx)) {
+    DistributedConditionVariable(std::string id_name, std::shared_ptr<DistributedMutex> d_mtx) :
+            id_name(std::move(id_name)), d_mtx(std::move(d_mtx)) {
         this->connectionManager = this->d_mtx->connectionManager;
     }
 
@@ -45,7 +47,7 @@ public:
             DistributedMutex::WaitInfo wait = d_mtx->waitingThreadsVector.back();
             d_mtx->waitingThreadsVector.pop_back();
             std::shared_ptr<Message> msg = std::make_shared<Message>
-                    (connectionManager->getDistributedClientId(), connectionManager->getLocalClientId(), Message::MessageType::SIGNAL, wait.waitMessageClock);
+                    (connectionManager->getDistributedClientId(), connectionManager->getLocalClientId(), Message::MessageType::SIGNAL, wait.waitMessageClock, id_name);
             msg->setReceiversId(wait.distributedId, wait.localId);
             connectionManager->sendSingleMessage(msg, false);
         }
@@ -61,6 +63,9 @@ public:
         l_cond.notify_all();
     }
 
+    std::string getIdName() {
+        return id_name;
+    }
 };
 
 #endif //NPR_MONITOR_DISTRIBUTEDCONDITIONVARIABLE_H

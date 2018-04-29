@@ -93,7 +93,8 @@ void DistributedMonitor::reactForWait(Message *receivedMessage) {
 void DistributedMonitor::reactForSignalMessage(Message *receivedMessage) {
     std::unique_lock<std::mutex> lock(*d_mutex->getLocalMutex());
     lock.unlock();
-    d_cond->l_notify();
+    std::string cvName = receivedMessage->getData();
+    d_cvMap[cvName]->l_notify();
 }
 
 void DistributedMonitor::reactForCommunicationEndMessage() {

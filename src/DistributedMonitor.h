@@ -26,8 +26,7 @@ private:
 
 protected:
     std::shared_ptr<DistributedMutex> d_mutex;
-    // TODO for test
-    std::shared_ptr<DistributedConditionVariable> d_cond;
+    std::map<std::string, std::shared_ptr<DistributedConditionVariable>> d_cvMap;
 
     // TODO delete
     int getDistributedId();

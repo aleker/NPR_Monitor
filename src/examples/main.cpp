@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     ConsumerProducerQueue buffer(&connection, 5);
     ConsumerProducerQueue buffer2(&connection, 5);
 
-    if (buffer.isProducent()) {
+    if (buffer.isProducer()) {
         for (int i = 0; i < 8; i++) {
             buffer.produce(i);
             buffer2.produce(i);

@@ -6,7 +6,6 @@
 
 class ConsumerProducerQueue : public DistributedMonitor {
 private:
-    // std::shared_ptr<DistributedConditionVariable> d_cond;
     std::queue<int> bufferQueue;
     int maxSize;
     bool producer = false;
@@ -29,16 +28,16 @@ private:
         ss.str(receivedData);
         std::string value;
         ss >> value;
-        if (value == "") bufferQueue.pop();             // value consumed
+        if (value.empty()) bufferQueue.pop();             // value consumed
         else bufferQueue.push(std::stoi(value));        // value produced
     }
 
 public:
     ConsumerProducerQueue(ConnectionInterface* connection, int maxSize) : DistributedMonitor(connection), maxSize(maxSize) {
-        d_cond = std::make_shared<DistributedConditionVariable>(d_mutex);
+        d_cvMap["id1"] = std::make_shared<DistributedConditionVariable>("id1", d_mutex);
     }
 
-    bool isProducent() {
+    bool isProducer() {
         return (getDistributedId() == 0) ;
     }
 
@@ -46,7 +45,7 @@ public:
         request += getDistributedId();
         d_mutex->d_lock();
         while (isFull())
-            d_cond->d_wait();
+            d_cvMap["id1"]->d_wait();
         bufferQueue.push(request);
         std::stringstream str;
         str << "AAAA PRODUCED " << request;
@@ -56,13 +55,13 @@ public:
         prepareDataToSend();
 
         d_mutex->d_unlock();
-        d_cond->d_notifyAll();
+        d_cvMap["id1"]->d_notifyAll();
     }
 
     void consume() {
         d_mutex->d_lock();
         while (isEmpty())
-            d_cond->d_wait();
+            d_cvMap["id1"]->d_wait();
         int request = bufferQueue.front();
         bufferQueue.pop();
         std::stringstream str;
@@ -73,7 +72,7 @@ public:
         prepareDataToSend();
 
         d_mutex->d_unlock();
-        d_cond->d_notifyAll();
+        d_cvMap["id1"]->d_notifyAll();
     }
 
     bool isFull() const {
@@ -94,7 +93,7 @@ public:
             bufferQueue.pop();
         }
         d_mutex->d_unlock();
-        d_cond->d_notifyAll();
+        d_cvMap["id1"]->d_notifyAll();
     }
 };
 
