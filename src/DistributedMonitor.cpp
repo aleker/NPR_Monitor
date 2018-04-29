@@ -18,6 +18,7 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
     switch (currentState) {
         case RicardAgravala::State::WAITING_FOR_REPLIES: {
             RicardAgravala::myRequest myRequest = connectionManager->algorithm.getMyNotFulfilledRequest();
+            // TODO czy poprawnie zwraca zegar?
             if (receivedMessage->getSendersClock() < myRequest.clock
                 or (receivedMessage->getSendersClock() == myRequest.clock
                     and receivedMessage->getSendersDistributedId() < connectionManager->getDistributedClientId())

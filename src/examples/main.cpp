@@ -18,7 +18,7 @@ void test1(int argc, char *argv[]) {
     TestBuffer test4(connection);
 
     // TEST MULTITHREADING
-    int loopsCount = 10;
+    int loopsCount = 2000;
     while(loopsCount > 0) {
         test.increment();
         test2.increment();
@@ -54,7 +54,7 @@ void test2(int argc, char *argv[]) {
     std::shared_ptr<ConnectionInterface>connection = std::make_shared<MPI_Connection>(argc, argv, 4);
     std::shared_ptr<ConnectionInterface>connectionP = std::make_shared<MPI_Connection>(argc, argv, 2);
     // TESTING:
-    MultiprocessDebugHelper::setup(15000 + connection->getDistributedClientId());
+    // MultiprocessDebugHelper::setup(15000 + connection->getDistributedClientId());
 
     ConsumerProducerQueue buffer(connection, 5);
     ConsumerProducerQueue buffer2(connection, 5);
