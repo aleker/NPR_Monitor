@@ -99,9 +99,9 @@ void DistributedMonitor::reactForSignalMessage(Message *receivedMessage) {
 void DistributedMonitor::reactForCommunicationEndMessage() {
     connectionManager->incrementThreadsThatWantToEndCommunicationCounter();
     if (connectionManager->receivedAllCommunicationEndMessages()) {
-        std::unique_lock<std::mutex> lock(connectionManager->mutexMap["communication-end"]);
+        std::unique_lock<std::mutex> lock(connectionManager->mutexMap["connection-end"]);
         lock.unlock();
-        connectionManager->cvMap["receivedAllEndReplies"].notify_all();
+        connectionManager->cvMap["end"].notify_all();
     }
 }
 
@@ -153,10 +153,8 @@ void DistributedMonitor::log(std::string log) {
 }
 
 void DistributedMonitor::endCommunication() {
-    connectionManager->waitForCommunicationEnd();
+    connectionManager->endConnection();
 }
-
-
 
 
 

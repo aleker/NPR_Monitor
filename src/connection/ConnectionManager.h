@@ -47,13 +47,13 @@ public:
     void sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data = "");
     void sendUnLockMessages(std::string dataToSend);
     void sendUnLockAndWaitMessages();
-    void waitForCommunicationEnd();
     void freeRequests();
     void signalIfAllUnlocksReceived();
     void signalIfAllResponsesReceived(int requestClock);
 
     int incrementThreadsThatWantToEndCommunicationCounter();
     bool receivedAllCommunicationEndMessages();
+    void endConnection();
 
     void log(std::string log);
 

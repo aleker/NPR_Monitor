@@ -24,7 +24,6 @@ private:
     void reactForSignalMessage(Message * receivedMessage);
     void reactForCommunicationEndMessage();
 
-
 protected:
     std::shared_ptr<DistributedMutex> d_mutex;
     // TODO for test
