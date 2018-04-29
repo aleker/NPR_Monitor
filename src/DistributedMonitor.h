@@ -8,6 +8,7 @@
 #include "connection/ConnectionManager.h"
 #include "Message.h"
 #include "mutex/DistributedMutex.h"
+#include "mutex/DistributedConditionVariable.h"
 
 
 class DistributedMonitor {
@@ -24,6 +25,9 @@ private:
 
 protected:
     std::shared_ptr<DistributedMutex> d_mutex;
+    // TODO for test
+    std::shared_ptr<DistributedConditionVariable> d_cond;
+
     // TODO delete
     int getId();
     void log(std::string log);

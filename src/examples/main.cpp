@@ -4,40 +4,43 @@
 #include "TestBuffer.h"
 #include "../MultiprocessDebugHelper.h"
 #include "../connection/MPI_Connection.h"
+#include "ConsumerProducerQueue.h"
+
+std::shared_ptr<ConsumerProducerQueue> buffer;
+std::shared_ptr<ConsumerProducerQueue> buffer2;
 
 int main(int argc, char *argv[]) {
     MPI_Connection connection(argc, argv, 4);
-    MPI_Connection connectionP(argc, argv, 2);
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection.getDistributedClientId());
 
-    TestBuffer test(&connection);
-    TestBuffer test2(&connectionP);
-    TestBuffer test3(&connectionP);
+    buffer = std::make_shared<ConsumerProducerQueue>(&connection, 5);
+    buffer2 = std::make_shared<ConsumerProducerQueue>(&connection, 10);
 
-
-    // TEST MULTITHREADING
-    int loopsCount = 1500;
-    while(loopsCount > 0) {
-        test.increment();
-        test2.increment();
-        test3.increment();
-
-        loopsCount--;
+    if (buffer->isProducent()) {
+        for (int i = 0; i < 6; i++) {
+            buffer->produce(i);
+            buffer2->produce(i);
+        }
+    }
+    else {
+        for (int i = 0; i < 12; i++) {
+            std::chrono::seconds sec = std::chrono::seconds(3);
+            std::this_thread::sleep_for(sec);
+            buffer->consume();
+            sec = std::chrono::seconds(2);
+            std::this_thread::sleep_for(sec);
+            buffer2->consume();
+        }
     }
 
     std::cout << "END\n";
+
     std::chrono::seconds sec = std::chrono::seconds(6);
     std::this_thread::sleep_for(sec);
-    test.printProtectedValues();
 
-    sec = std::chrono::seconds(1);
-    std::this_thread::sleep_for(sec);
-    test2.printProtectedValues();
+    std::cout << "END2\n";
 
-    sec = std::chrono::seconds(1);
-    std::this_thread::sleep_for(sec);
-    test3.printProtectedValues();
 
     return 0;
 }

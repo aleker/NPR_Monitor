@@ -146,11 +146,13 @@ std::string ConnectionManager::messageTypeToString(int messageType) {
 Message ConnectionManager::receiveMessage(int messageType) {
     std::string typeString = messageTypeToString(messageType);
     Message message = connection->receiveMessage(messageType + localClientId);
+    algorithm.updateLamportClock(message.getSendersClock());
     std::stringstream str;
+    // TODO remove received log
     str << "received " << typeString << "!: from " << message.getSendersLocalId() << ":" <<
         message.getSendersDistributedId();
     log(str.str());
-    algorithm.updateLamportClock(message.getSendersClock());
+//    algorithm.updateLamportClock(message.getSendersClock());
     return message;
 }
 
@@ -163,3 +165,4 @@ void ConnectionManager::log(std::string log) {
         << ": " << log;
     logger->log(str.str());
 }
+

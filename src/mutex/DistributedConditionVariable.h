@@ -2,17 +2,20 @@
 #define NPR_MONITOR_DISTRIBUTEDCONDITIONVARIABLE_H
 
 #include <mutex>
+#include <condition_variable>
+#include <memory>
+
 #include "DistributedMutex.h"
-#include "../Message.h"
 #include "../connection/ConnectionManager.h"
 
 class DistributedConditionVariable {
 private:
     std::shared_ptr<DistributedMutex> d_mtx;
     std::shared_ptr<ConnectionManager> connectionManager{};
+    std::condition_variable l_cond;
 
 public:
-    explicit DistributedConditionVariable(std::shared_ptr<DistributedMutex> d_mtx) : d_mtx(d_mtx) {
+    explicit DistributedConditionVariable(std::shared_ptr<DistributedMutex> d_mtx) : d_mtx(std::move(d_mtx)) {
         this->connectionManager = this->d_mtx->connectionManager;
     }
 
@@ -28,9 +31,15 @@ public:
         connectionManager->freeRequests();
         connectionManager->algorithm.changeState(RicardAgravala::State::FREE);
         d_mtx->stateMutex.unlock();
+
+        // wait here!
+        std::unique_lock<std::mutex> lock(*d_mtx->getLocalMutex());
+        l_cond.wait(lock);
+        d_mtx->d_lock(d_mtx->getLastLockClock());
     }
 
     void d_notifyAll() {
+        connectionManager->log("---NOTIFY ---");
         d_mtx->waitingThreadsVectorMutex.lock();
         while (!d_mtx->waitingThreadsVector.empty()) {
             DistributedMutex::WaitInfo wait = d_mtx->waitingThreadsVector.back();
@@ -41,6 +50,15 @@ public:
             connectionManager->sendSingleMessage(msg, false);
         }
         d_mtx->waitingThreadsVectorMutex.unlock();
+
+        // notify locally!
+        l_notify();
+    }
+
+    void l_notify() {
+        std::unique_lock<std::mutex> lock(*d_mtx->getLocalMutex());
+        lock.unlock();
+        l_cond.notify_all();
     }
 
 };

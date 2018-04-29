@@ -55,11 +55,12 @@ void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
     bool responseForMyCurrentRequest = connectionManager->algorithm.decrementReplyCounter(receivedMessage->getRequestClock());
     int count = connectionManager->algorithm.getNotAnsweredRepliesCount(receivedMessage->getRequestClock());
     std::stringstream str;
+    // TODO remove log
     str << "Responses counter: " << count;
     connectionManager->log(str.str());
 
     if (!responseForMyCurrentRequest) {
-        std::cerr << "Response not for current request!\n";
+        log("Response not for current request!\n");
         return;
     }
 
@@ -94,7 +95,12 @@ void DistributedMonitor::reactForWait(Message *receivedMessage) {
 }
 
 void DistributedMonitor::reactForSignalMessage(Message *receivedMessage) {
-    d_mutex->d_lock(receivedMessage->getRequestClock());
+    // d_mutex->d_lock(receivedMessage->getRequestClock());
+    // notify localy to all locked condition variables
+    // notify locally!
+    std::unique_lock<std::mutex> lock(*d_mutex->getLocalMutex());
+    lock.unlock();
+    d_cond->l_notify();
 }
 
 /*

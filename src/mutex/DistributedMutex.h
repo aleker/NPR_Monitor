@@ -1,10 +1,15 @@
 #ifndef NPR_MONITOR_MUTEX_H
 #define NPR_MONITOR_MUTEX_H
 
+#include <mutex>
+#include <vector>
+#include <memory>
 
 class DistributedMutex {
 private:
     std::string protectedData;
+    std::mutex l_mutex;
+    int lastLockClock = 0;
 
 public:
     struct WaitInfo {
@@ -32,14 +37,14 @@ public:
         connectionManager->algorithm.changeState(RicardAgravala::State::WAITING_FOR_REPLIES);
         std::shared_ptr<Message> msg = std::make_shared<Message>
                 (connectionManager->getDistributedClientId(), connectionManager->getLocalClientId(), Message::MessageType::LOCK_MTX);
-        int thisMessageClock = connectionManager->sendMessageOnBroadcast(msg, true, requestClock);
+        lastLockClock = connectionManager->sendMessageOnBroadcast(msg, true, requestClock);
         stateMutex.unlock();
 
         // CRITICAL SECTION ENTRY
         std::unique_lock<std::mutex> lock(connectionManager->mutexMap["global-lock"]);
-        while (connectionManager->algorithm.getNotAnsweredRepliesCount(thisMessageClock) > 0) {
+        while (connectionManager->algorithm.getNotAnsweredRepliesCount(lastLockClock) > 0) {
             std::stringstream str;
-            str << "WAIT for critical section (" << thisMessageClock << ")";
+            str << "WAIT for critical section (" << lastLockClock << ")";
             connectionManager->log(str.str());
             connectionManager->cvMap["receivedAllReplies"].wait(lock);
         };
@@ -53,12 +58,13 @@ public:
 
         // NOW IN CRITICAL SECTION
         std::stringstream str;
-        str << "---CRITICAL SECTION : START--- ("  << thisMessageClock << ")";
+        str << "---CRITICAL SECTION : START--- ("  << lastLockClock << ")";
         connectionManager->log(str.str());
         stateMutex.lock();
         connectionManager->algorithm.changeState(RicardAgravala::State::IN_CRITICAL_SECTION);
         RicardAgravala::myRequest clear;
         connectionManager->algorithm.setMyNotFulfilledRequest(clear);
+        connectionManager->algorithm.updateLamportClock();      // for readable logs
         stateMutex.unlock();
     }
 
@@ -93,6 +99,14 @@ public:
                 // TODO break?
             }
         }
+    }
+
+    std::mutex* getLocalMutex() {
+        return &l_mutex;
+    }
+
+    int getLastLockClock() {
+        return this->lastLockClock;
     }
 
 };

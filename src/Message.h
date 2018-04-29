@@ -20,7 +20,7 @@ const int MAX_MSG_SIZE = 100;
 class Message {
 private:
     /*
-    * When inheriting you have to add serialization mechanism to your class.
+    * When inheriting you have to produce serialization mechanism to your class.
     */
     friend class boost::serialization::access;
     template<class Archive>
