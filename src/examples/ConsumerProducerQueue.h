@@ -4,7 +4,7 @@
 #include <iostream>
 #include "../DistributedMonitor.h"
 
-class ConsumerProducerQueue : DistributedMonitor {
+class ConsumerProducerQueue : public DistributedMonitor {
 private:
     // std::shared_ptr<DistributedConditionVariable> d_cond;
     std::queue<int> bufferQueue;
@@ -39,11 +39,11 @@ public:
     }
 
     bool isProducent() {
-        return (getId() == 0) ;
+        return (getDistributedId() == 0) ;
     }
 
     void produce(int request) {
-        request += getId();
+        request += getDistributedId();
         d_mutex->d_lock();
         while (isFull())
             d_cond->d_wait();
@@ -74,7 +74,6 @@ public:
 
         d_mutex->d_unlock();
         d_cond->d_notifyAll();
-
     }
 
     bool isFull() const {

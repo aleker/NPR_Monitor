@@ -8,10 +8,7 @@ DistributedMonitor::DistributedMonitor(ConnectionInterface* connection) :
 }
 
 DistributedMonitor::~DistributedMonitor() {
-    // TODO end connection properly
-    connectionManager->log(": JOIN?");
     this->listenThread.join();
-    connectionManager->log(": JOIN!");
 }
 
 void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
@@ -55,9 +52,8 @@ void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
     bool responseForMyCurrentRequest = connectionManager->algorithm.decrementReplyCounter(receivedMessage->getRequestClock());
     int count = connectionManager->algorithm.getNotAnsweredRepliesCount(receivedMessage->getRequestClock());
     std::stringstream str;
-    // TODO remove log
     str << "Responses counter: " << count;
-    connectionManager->log(str.str());
+    //connectionManager->log(str.str());
 
     if (!responseForMyCurrentRequest) {
         log("Response not for current request!\n");
@@ -95,12 +91,18 @@ void DistributedMonitor::reactForWait(Message *receivedMessage) {
 }
 
 void DistributedMonitor::reactForSignalMessage(Message *receivedMessage) {
-    // d_mutex->d_lock(receivedMessage->getRequestClock());
-    // notify localy to all locked condition variables
-    // notify locally!
     std::unique_lock<std::mutex> lock(*d_mutex->getLocalMutex());
     lock.unlock();
     d_cond->l_notify();
+}
+
+void DistributedMonitor::reactForCommunicationEndMessage() {
+    connectionManager->incrementThreadsThatWantToEndCommunicationCounter();
+    if (connectionManager->receivedAllCommunicationEndMessages()) {
+        std::unique_lock<std::mutex> lock(connectionManager->mutexMap["communication-end"]);
+        lock.unlock();
+        connectionManager->cvMap["receivedAllEndReplies"].notify_all();
+    }
 }
 
 /*
@@ -109,7 +111,7 @@ void DistributedMonitor::reactForSignalMessage(Message *receivedMessage) {
 
 void DistributedMonitor::listen() {
     Message message;
-    while(true) {
+    while(!connectionManager->receivedAllCommunicationEndMessages()) {
         if (connectionManager->tryToReceiveMessage(Message::MessageType::LOCK_MTX)) {
             message = connectionManager->receiveMessage(Message::MessageType::LOCK_MTX);
             reactForLockRequest(&message);
@@ -131,6 +133,10 @@ void DistributedMonitor::listen() {
             message = connectionManager->receiveMessage(Message::MessageType::SIGNAL);
             reactForSignalMessage(&message);
         }
+        if (connectionManager->tryToReceiveMessage(Message::MessageType::COMMUNICATION_END)) {
+            message = connectionManager->receiveMessage(Message::MessageType::COMMUNICATION_END);
+            reactForCommunicationEndMessage();
+        }
     }
 }
 
@@ -138,12 +144,16 @@ void DistributedMonitor::prepareDataToSend() {
     d_mutex->setDataToSynchronize(returnDataToSend());
 }
 
-int DistributedMonitor::getId() {
+int DistributedMonitor::getDistributedId() {
     return connectionManager->getDistributedClientId();
 }
 
 void DistributedMonitor::log(std::string log) {
     connectionManager->log(log);
+}
+
+void DistributedMonitor::endCommunication() {
+    connectionManager->waitForCommunicationEnd();
 }
 
 

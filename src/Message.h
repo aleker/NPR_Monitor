@@ -56,7 +56,8 @@ public:
         LOCK_RESPONSE,
         UNLOCK_MTX,
         UNLOCK_MTX_WAIT,
-        SIGNAL
+        SIGNAL,
+        COMMUNICATION_END
     };
 
     Message() = default;

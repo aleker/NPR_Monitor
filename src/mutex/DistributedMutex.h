@@ -96,7 +96,6 @@ public:
         for (unsigned int i = 0; i < waitingThreadsVector.size(); i++) {
             if (waitingThreadsVector.at(i).localId == localId && waitingThreadsVector.at(i).distributedId == distributedId) {
                 waitingThreadsVector.erase(waitingThreadsVector.begin() + i);
-                // TODO break?
             }
         }
     }

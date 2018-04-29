@@ -22,8 +22,6 @@ MPI_Connection::MPI_Connection(int argc, char **argv) {
 }
 
 MPI_Connection::~MPI_Connection() {
-    // TODO remove
-    printf("Exit! Id: %d.\n", this->distributedClientId);
     MPI_Comm_free(MPI_communicator);
     MPI_Finalize();
 }

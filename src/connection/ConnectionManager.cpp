@@ -12,6 +12,8 @@ ConnectionManager::ConnectionManager(ConnectionInterface *connection) : connecti
     this->logger = std::make_unique<Logger>(str.str());
 }
 
+ConnectionManager::~ConnectionManager() {}
+
 int ConnectionManager::getDistributedClientId() {
     return this->connection->getDistributedClientId();
 }
@@ -60,6 +62,20 @@ int ConnectionManager::sendMessageOnBroadcast(std::shared_ptr<Message> message, 
     return lamportClock;
 }
 
+void ConnectionManager::waitForCommunicationEnd() {
+    log("SEND CONNECTION END");
+    incrementThreadsThatWantToEndCommunicationCounter();
+    std::shared_ptr<Message> msg = std::make_shared<Message>
+            (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::COMMUNICATION_END);
+    int clock = this->sendMessageOnBroadcast(msg, false);
+    std::unique_lock<std::mutex> lock(mutexMap["communication-end"]);
+    while (!receivedAllCommunicationEndMessages()) {
+        std::stringstream str;
+        str << "WAIT for CONNECTION END (" << clock << ")";
+        log(str.str());
+        cvMap["receivedAllEndReplies"].wait(lock);
+    };
+}
 
 void ConnectionManager::sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data) {
     std::shared_ptr<Message> msg = std::make_shared<Message>
@@ -137,6 +153,10 @@ std::string ConnectionManager::messageTypeToString(int messageType) {
             typeString = "LOCK_RESPONSE";
             break;
         }
+        case Message::MessageType::COMMUNICATION_END : {
+            typeString = "COMMUNICATION_END";
+            break;
+        }
         default :
             typeString = "";
     }
@@ -165,4 +185,15 @@ void ConnectionManager::log(std::string log) {
         << ": " << log;
     logger->log(str.str());
 }
+
+int ConnectionManager::incrementThreadsThatWantToEndCommunicationCounter() {
+    threadsThatWantToEndCommunicationCounter++;
+    return threadsThatWantToEndCommunicationCounter;
+}
+
+bool ConnectionManager::receivedAllCommunicationEndMessages() {
+    int counter = connection->getLocalClientsCount() * connection->getDistributedClientsCount();
+    return (threadsThatWantToEndCommunicationCounter >= counter);
+}
+
 

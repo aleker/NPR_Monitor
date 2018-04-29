@@ -22,6 +22,8 @@ private:
     void reactForUnlock(Message * receivedMessage);
     void reactForWait(Message * receivedMessage);
     void reactForSignalMessage(Message * receivedMessage);
+    void reactForCommunicationEndMessage();
+
 
 protected:
     std::shared_ptr<DistributedMutex> d_mutex;
@@ -29,7 +31,7 @@ protected:
     std::shared_ptr<DistributedConditionVariable> d_cond;
 
     // TODO delete
-    int getId();
+    int getDistributedId();
     void log(std::string log);
 
     virtual std::string returnDataToSend() = 0;
@@ -39,7 +41,7 @@ public:
     explicit DistributedMonitor(ConnectionInterface* connection);
     ~DistributedMonitor();
     void prepareDataToSend();
-
+    void endCommunication();
 };
 
 

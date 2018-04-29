@@ -29,7 +29,7 @@ public:
          * critical section entry
          */
         std::random_device rd;
-        int i = getId();
+        int i = getDistributedId();
         int randVal = rd();
         this->protected_values[i]+= (randVal);
         /*

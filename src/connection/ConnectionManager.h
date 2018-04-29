@@ -17,6 +17,7 @@ private:
     // TODO change step to smaller
     const int clientIdStep = 100;
     int localClientId;
+    int threadsThatWantToEndCommunicationCounter = 0;
 
     ConnectionInterface* connection;
     std::unique_ptr<Logger> logger;
@@ -27,7 +28,9 @@ public:
     std::map<std::string, std::condition_variable> cvMap;
     std::map<std::string, std::mutex> mutexMap;
 
-    ConnectionManager(ConnectionInterface *connection);
+    explicit ConnectionManager(ConnectionInterface *connection);
+
+    virtual ~ConnectionManager();
 
     // TODO private cos?
     void sendMessage(std::shared_ptr<Message> message);
@@ -44,9 +47,13 @@ public:
     void sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data = "");
     void sendUnLockMessages(std::string dataToSend);
     void sendUnLockAndWaitMessages();
+    void waitForCommunicationEnd();
     void freeRequests();
     void signalIfAllUnlocksReceived();
     void signalIfAllResponsesReceived(int requestClock);
+
+    int incrementThreadsThatWantToEndCommunicationCounter();
+    bool receivedAllCommunicationEndMessages();
 
     void log(std::string log);
 
