@@ -17,8 +17,10 @@ private:
     int protected_values[2] = {0, 0};
 
 public:
-    explicit TestBuffer(ConnectionInterface* connection)
+    explicit TestBuffer(std::shared_ptr<ConnectionInterface>connection)
             : DistributedMonitor(connection) {}
+
+    virtual ~TestBuffer() {}
 
     void increment() {
         /*

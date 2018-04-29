@@ -3,9 +3,10 @@
 //
 
 #include <iostream>
+#include <thread>
 #include "ConnectionManager.h"
 
-ConnectionManager::ConnectionManager(ConnectionInterface *connection) : connection(connection) {
+ConnectionManager::ConnectionManager(std::shared_ptr<ConnectionInterface>connection) : connection(connection) {
     this->localClientId = this->connection->addNewLocalClient() * clientIdStep;
     std::stringstream str;
     str << "./log" << connection->getUniqueConnectionNo() << ".txt";
@@ -177,7 +178,9 @@ int ConnectionManager::incrementThreadsThatWantToEndCommunicationCounter() {
 }
 
 bool ConnectionManager::receivedAllCommunicationEndMessages() {
-    return (threadsThatWantToEndCommunicationCounter >= connection->getDistributedClientsCount());
+    int count = connection->getDistributedClientsCount() * connection-> getLocalClientsCount();
+//    count = connection->getDistributedClientsCount();
+    return (threadsThatWantToEndCommunicationCounter >= count);
 }
 
 void ConnectionManager::endConnection() {

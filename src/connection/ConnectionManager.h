@@ -19,16 +19,17 @@ private:
     int localClientId;
     int threadsThatWantToEndCommunicationCounter = 0;
 
-    ConnectionInterface* connection;
+    std::shared_ptr<ConnectionInterface>connection;
     std::unique_ptr<Logger> logger;
 
     std::string messageTypeToString(int messageType);
+
 public:
     RicardAgravala algorithm;
     std::map<std::string, std::condition_variable> cvMap;
     std::map<std::string, std::mutex> mutexMap;
 
-    explicit ConnectionManager(ConnectionInterface *connection);
+    explicit ConnectionManager(std::shared_ptr<ConnectionInterface>connection);
 
     virtual ~ConnectionManager();
 

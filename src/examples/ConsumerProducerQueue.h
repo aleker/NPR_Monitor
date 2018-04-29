@@ -28,13 +28,17 @@ private:
         ss.str(receivedData);
         std::string value;
         ss >> value;
-        if (value.empty()) bufferQueue.pop();             // value consumed
+        if (value == "") bufferQueue.pop();             // value consumed
         else bufferQueue.push(std::stoi(value));        // value produced
     }
 
 public:
-    ConsumerProducerQueue(ConnectionInterface* connection, int maxSize) : DistributedMonitor(connection), maxSize(maxSize) {
+    ConsumerProducerQueue(std::shared_ptr<ConnectionInterface>connection, int maxSize) : DistributedMonitor(connection), maxSize(maxSize) {
         d_cvMap["id1"] = std::make_shared<DistributedConditionVariable>("id1", d_mutex);
+    }
+
+    ~ConsumerProducerQueue() {
+        endCommunication();
     }
 
     bool isProducer() {

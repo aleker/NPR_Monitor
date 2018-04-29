@@ -12,7 +12,7 @@ class DistributedConditionVariable {
 private:
     std::string id_name;
     std::shared_ptr<DistributedMutex> d_mtx;
-    std::shared_ptr<ConnectionManager> connectionManager{};
+    std::shared_ptr<ConnectionManager> connectionManager;
     std::condition_variable l_cond;
 
 public:

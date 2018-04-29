@@ -36,7 +36,7 @@ protected:
     virtual void manageReceivedData(std::string receivedData) = 0;
 
 public:
-    explicit DistributedMonitor(ConnectionInterface* connection);
+    explicit DistributedMonitor(std::shared_ptr<ConnectionInterface>connection);
     ~DistributedMonitor();
     void prepareDataToSend();
     void endCommunication();

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "DistributedMonitor.h"
 
-DistributedMonitor::DistributedMonitor(ConnectionInterface* connection) :
+DistributedMonitor::DistributedMonitor(std::shared_ptr<ConnectionInterface>connection) :
     connectionManager(std::make_shared<ConnectionManager>(connection)) {
     this->d_mutex = std::make_shared<DistributedMutex>(this->connectionManager);
     this->listenThread = std::thread(&DistributedMonitor::listen, this);
@@ -9,6 +9,7 @@ DistributedMonitor::DistributedMonitor(ConnectionInterface* connection) :
 
 DistributedMonitor::~DistributedMonitor() {
     this->listenThread.join();
+    log("JOINED!");
 }
 
 void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
