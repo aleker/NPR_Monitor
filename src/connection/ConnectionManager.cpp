@@ -4,7 +4,7 @@
 ConnectionManager::ConnectionManager(std::shared_ptr<ConnectionInterface> connection) : connection(connection) {
     this->localClientId = this->connection->addNewLocalClient() * clientIdStep;
     std::stringstream str;
-    str << "./log" << connection->getUniqueConnectionNo() << ".txt";
+    str << "log" << connection->getUniqueConnectionNo() << ".txt";
     this->logger = std::make_unique<Logger>(str.str());
 }
 

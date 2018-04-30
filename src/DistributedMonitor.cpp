@@ -9,7 +9,6 @@ DistributedMonitor::DistributedMonitor(std::shared_ptr<ConnectionInterface> conn
 
 DistributedMonitor::~DistributedMonitor() {
     this->listenThread.join();
-    log("JOINED!");
 }
 
 /*
