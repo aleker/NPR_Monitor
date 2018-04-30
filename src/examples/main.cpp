@@ -55,8 +55,8 @@ void test2(int argc, char *argv[]) {
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection->getDistributedClientId());
 
-    ConsumerProducerQueue buffer(connection, 5);
-    ConsumerProducerQueue buffer2(connection, 5);
+    ConsumerProducerQueue buffer(connection, 5);    // for producer
+    ConsumerProducerQueue buffer2(connection, 5);   // for consumer
 
     if (buffer.isProducer()) {
         for (int i = 0; i < 1000; i++) {

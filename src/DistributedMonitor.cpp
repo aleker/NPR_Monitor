@@ -78,6 +78,7 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
         }
         default: {
             // NOT NEEDED: SEND LOCK_RESPONSE NOW!
+            log("WYSYŁAM BY DEFAULT!");
             connectionManager->sendLockResponse(receivedMessage->getSendersDistributedId(), receivedMessage->getSendersLocalId(), receivedMessage->getSendersClock());
             d_mutex->setLastRequestThatWeResponsedClock(receivedMessage->getSendersClock());
             break;

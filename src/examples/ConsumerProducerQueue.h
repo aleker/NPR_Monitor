@@ -11,6 +11,7 @@ private:
     bool producer = false;
 
     std::string returnDataToSend() override {
+        print_queue(bufferQueue, "AAA wysylam");
         if (producer) {
             std::stringstream ss;
             // get last added value
@@ -24,6 +25,7 @@ private:
     }
 
     void manageReceivedData(std::string receivedData) override {
+        print_queue(bufferQueue, "AAA przedOdeb");
         std::stringstream ss;
         ss.str(receivedData);
         std::string value;
@@ -34,6 +36,7 @@ private:
         }
         else
             bufferQueue.push(std::stoi(value));        // value produced
+        print_queue(bufferQueue, "AAA odebrane");
     }
 
 public:
@@ -49,17 +52,25 @@ public:
         return (getDistributedId() == 0) ;
     }
 
+    void print_queue(std::queue<int> q, std::string logMes) {
+        std::stringstream str;
+        str << logMes << " '";
+        while (!q.empty()) {
+            str << q.front() << " ";
+            q.pop();
+        }
+        str << "'";
+        log(str.str());
+    }
+
     void produce(int request) {
         request += getDistributedId();
         d_mutex->d_lock();
         while (isFull())
             d_cvMap["id1"]->d_wait();
         bufferQueue.push(request);
-        std::stringstream str;
-        str << "AAAA PRODUCED " << request;
-        log(str.str());
-        producer = true;
 
+        producer = true;
         prepareDataToSend();
 
         d_mutex->d_unlock();
@@ -72,11 +83,8 @@ public:
             d_cvMap["id1"]->d_wait();
         int request = bufferQueue.front();
         bufferQueue.pop();
-        std::stringstream str;
-        str << "AAAA CONSUMED " << request;
-        log(str.str());
-        producer = false;
 
+        producer = false;
         prepareDataToSend();
 
         d_mutex->d_unlock();
