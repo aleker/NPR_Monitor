@@ -9,7 +9,8 @@ class DistributedMutex {
 private:
     std::string protectedData;
     std::mutex l_mutex;
-    int lastLockClock = 0;
+    int lastSentLockClock = 0;
+    int lastRequestThatWeResponsedClock = 0;
 
 public:
     struct WaitInfo {
@@ -37,14 +38,14 @@ public:
         connectionManager->algorithm.changeState(RicardAgravala::State::WAITING_FOR_REPLIES);
         std::shared_ptr<Message> msg = std::make_shared<Message>
                 (connectionManager->getDistributedClientId(), connectionManager->getLocalClientId(), Message::MessageType::LOCK_MTX);
-        lastLockClock = connectionManager->sendMessageOnBroadcast(msg, true, requestClock);
+        lastSentLockClock = connectionManager->sendMessageOnBroadcast(msg, true, requestClock);
         stateMutex.unlock();
 
         // CRITICAL SECTION ENTRY
         std::unique_lock<std::mutex> lock(connectionManager->mutexMap["global-lock"]);
-        while (connectionManager->algorithm.getNotAnsweredRepliesCount(lastLockClock) > 0) {
+        while (connectionManager->algorithm.getNotAnsweredRepliesCount(lastSentLockClock) > 0) {
             std::stringstream str;
-            str << "WAIT for critical section (" << lastLockClock << ")";
+            str << "WAIT for critical section (" << lastSentLockClock << ")";
             connectionManager->log(str.str());
             connectionManager->cvMap["receivedAllReplies"].wait(lock);
         };
@@ -58,7 +59,7 @@ public:
 
         // NOW IN CRITICAL SECTION
         std::stringstream str;
-        str << "---CRITICAL SECTION : START--- ("  << lastLockClock << ")";
+        str << "---CRITICAL SECTION : START--- ("  << lastSentLockClock << ")";
         connectionManager->log(str.str());
         stateMutex.lock();
         connectionManager->algorithm.changeState(RicardAgravala::State::IN_CRITICAL_SECTION);
@@ -105,7 +106,15 @@ public:
     }
 
     int getLastLockClock() {
-        return this->lastLockClock;
+        return this->lastSentLockClock;
+    }
+
+    void setLastRequestThatWeResponsedClock(int lastSentResponseClock) {
+        this->lastRequestThatWeResponsedClock = std::max(this->lastRequestThatWeResponsedClock, lastSentResponseClock);
+    }
+
+    int getLastRequestThatWeResponsedClock() const {
+        return lastRequestThatWeResponsedClock;
     }
 
 };

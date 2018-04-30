@@ -81,10 +81,10 @@ void ConnectionManager::sendUnLockMessages(std::string dataToSend) {
     this->sendMessageOnBroadcast(msg, false);
 }
 
-void ConnectionManager::sendUnLockAndWaitMessages() {
+int ConnectionManager::sendUnLockAndWaitMessages() {
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::UNLOCK_MTX_WAIT, algorithm.getMyNotFulfilledRequest().clock);
-    this->sendMessageOnBroadcast(msg, false);
+    return this->sendMessageOnBroadcast(msg, false);
 }
 
 void ConnectionManager::freeRequests() {

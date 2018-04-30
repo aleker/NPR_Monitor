@@ -12,6 +12,41 @@ DistributedMonitor::~DistributedMonitor() {
     log("JOINED!");
 }
 
+/*
+ * listen() - function called on listenThread. It manages all received messages.
+ */
+
+void DistributedMonitor::listen() {
+    Message message;
+    while(!connectionManager->receivedAllCommunicationEndMessages()) {
+        if (connectionManager->tryToReceiveMessage(Message::MessageType::LOCK_MTX)) {
+            message = connectionManager->receiveMessage(Message::MessageType::LOCK_MTX);
+            reactForLockRequest(&message);
+            d_mutex->removeThisThreadFromWaitingList(message.getSendersLocalId(), message.getSendersDistributedId());
+        }
+        if (connectionManager->tryToReceiveMessage(Message::MessageType::LOCK_RESPONSE)) {
+            message = connectionManager->receiveMessage(Message::MessageType::LOCK_RESPONSE);
+            reactForLockResponse(&message);
+        }
+        if (connectionManager->tryToReceiveMessage(Message::MessageType::UNLOCK_MTX)) {
+            message = connectionManager->receiveMessage(Message::MessageType::UNLOCK_MTX);
+            reactForUnlock(&message);
+        }
+        if (connectionManager->tryToReceiveMessage(Message::MessageType::UNLOCK_MTX_WAIT)) {
+            message = connectionManager->receiveMessage(Message::MessageType::UNLOCK_MTX_WAIT);
+            reactForWait(&message);
+        }
+        if (connectionManager->tryToReceiveMessage(Message::MessageType::SIGNAL)) {
+            message = connectionManager->receiveMessage(Message::MessageType::SIGNAL);
+            reactForSignalMessage(&message);
+        }
+        if (connectionManager->tryToReceiveMessage(Message::MessageType::COMMUNICATION_END)) {
+            message = connectionManager->receiveMessage(Message::MessageType::COMMUNICATION_END);
+            reactForCommunicationEndMessage();
+        }
+    }
+}
+
 void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
     d_mutex->stateMutex.lock();
     int currentState = connectionManager->algorithm.getState();
@@ -29,6 +64,7 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
                 connectionManager->sendLockResponse(receivedMessage->getSendersDistributedId(),
                                  receivedMessage->getSendersLocalId(),
                                  receivedMessage->getSendersClock());
+                d_mutex->setLastRequestThatWeResponsedClock(receivedMessage->getSendersClock());
             }
             else {
                 // we are better
@@ -43,6 +79,7 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
         default: {
             // NOT NEEDED: SEND LOCK_RESPONSE NOW!
             connectionManager->sendLockResponse(receivedMessage->getSendersDistributedId(), receivedMessage->getSendersLocalId(), receivedMessage->getSendersClock());
+            d_mutex->setLastRequestThatWeResponsedClock(receivedMessage->getSendersClock());
             break;
         }
     }
@@ -105,41 +142,6 @@ void DistributedMonitor::reactForCommunicationEndMessage() {
         std::unique_lock<std::mutex> lock(connectionManager->mutexMap["connection-end"]);
         lock.unlock();
         connectionManager->cvMap["end"].notify_all();
-    }
-}
-
-/*
- * listen() - function called on listenThread. It manages all received messages.
- */
-
-void DistributedMonitor::listen() {
-    Message message;
-    while(!connectionManager->receivedAllCommunicationEndMessages()) {
-        if (connectionManager->tryToReceiveMessage(Message::MessageType::LOCK_MTX)) {
-            message = connectionManager->receiveMessage(Message::MessageType::LOCK_MTX);
-            reactForLockRequest(&message);
-            d_mutex->removeThisThreadFromWaitingList(message.getSendersLocalId(), message.getSendersDistributedId());
-        }
-        if (connectionManager->tryToReceiveMessage(Message::MessageType::LOCK_RESPONSE)) {
-            message = connectionManager->receiveMessage(Message::MessageType::LOCK_RESPONSE);
-            reactForLockResponse(&message);
-        }
-        if (connectionManager->tryToReceiveMessage(Message::MessageType::UNLOCK_MTX)) {
-            message = connectionManager->receiveMessage(Message::MessageType::UNLOCK_MTX);
-            reactForUnlock(&message);
-        }
-        if (connectionManager->tryToReceiveMessage(Message::MessageType::UNLOCK_MTX_WAIT)) {
-            message = connectionManager->receiveMessage(Message::MessageType::UNLOCK_MTX_WAIT);
-            reactForWait(&message);
-        }
-        if (connectionManager->tryToReceiveMessage(Message::MessageType::SIGNAL)) {
-            message = connectionManager->receiveMessage(Message::MessageType::SIGNAL);
-            reactForSignalMessage(&message);
-        }
-        if (connectionManager->tryToReceiveMessage(Message::MessageType::COMMUNICATION_END)) {
-            message = connectionManager->receiveMessage(Message::MessageType::COMMUNICATION_END);
-            reactForCommunicationEndMessage();
-        }
     }
 }
 

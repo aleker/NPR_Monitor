@@ -1,13 +1,11 @@
 #include "MPI_Connection.h"
 
 bool MPI_Connection::initialized;
-int MPI_Connection::communicatorsCount;
 
 MPI_Connection::MPI_Connection(int argc, char **argv, int uniqueConnectionNo) {
     this->problemNo = uniqueConnectionNo;
     initialize(argc, argv);
     int worldRank;
-    MPI_Connection::communicatorsCount += 1;
     MPI_communicator = new MPI_Comm();
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
     MPI_Comm_split(MPI_COMM_WORLD, uniqueConnectionNo, worldRank, MPI_communicator);
@@ -17,7 +15,6 @@ MPI_Connection::MPI_Connection(int argc, char **argv, int uniqueConnectionNo) {
 
 MPI_Connection::MPI_Connection(int argc, char **argv) {
     initialize(argc, argv);
-    MPI_Connection::communicatorsCount += 1;
     MPI_Comm_rank(MPI_COMM_WORLD, &this->distributedClientId);
     MPI_Comm_size(MPI_COMM_WORLD, &this->mpiDistributedClientsCount);
 }
@@ -26,12 +23,7 @@ MPI_Connection::~MPI_Connection() {
     localClientsIdsCount--;
     if (localClientsIdsCount <= 0) {
         MPI_Comm_free(MPI_communicator);
-        MPI_Connection::communicatorsCount -= 1;
         std::cout << "MPI_Connection COMM_FREE!\n";
-        if (MPI_Connection::communicatorsCount <= 1) {
-            std::cout << "MPI_Connection FINALIZE!\n";
-            MPI_Finalize();
-        }
     }
 }
 
@@ -52,7 +44,6 @@ void MPI_Connection::initialize(int argc, char **argv) {
         throw;
     }
     MPI_Connection::initialized = true;
-    MPI_Connection::communicatorsCount = 0;
 }
 
 void MPI_Connection::sendMessage(std::shared_ptr<Message> message) {
@@ -147,6 +138,10 @@ int MPI_Connection::addNewLocalClient() {
     this->localClientsIdsCount = this->localClientsIdsCounter;
     this->recvMessageMtx.unlock();
     return newId;
+}
+
+void MPI_Connection::endConnection() {
+    MPI_Finalize();
 }
 
 

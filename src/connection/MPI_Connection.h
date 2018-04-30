@@ -19,7 +19,6 @@ private:
     int problemNo = -1;
     std::mutex recvMessageMtx;
     static bool initialized;
-    static int communicatorsCount;
 
     void initialize(int argc, char **argv);
     bool isMPICommunicatorNotNull();
@@ -41,6 +40,8 @@ public:
     Message receiveMessage(int tag, int sourceId) override;
     bool tryToReceive(int tag) override ;
     bool tryToReceive(int tag, int sourceId) override ;
+
+    static void endConnection();
 };
 
 

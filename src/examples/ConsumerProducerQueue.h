@@ -28,8 +28,10 @@ private:
         ss.str(receivedData);
         std::string value;
         ss >> value;
-        if (value == "")
+        if (value == "") {
+            assert(!bufferQueue.empty());
             bufferQueue.pop();             // value consumed
+        }
         else
             bufferQueue.push(std::stoi(value));        // value produced
     }

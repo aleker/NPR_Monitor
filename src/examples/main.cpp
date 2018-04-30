@@ -52,39 +52,32 @@ void test1(int argc, char *argv[]) {
 
 void test2(int argc, char *argv[]) {
     std::shared_ptr<ConnectionInterface>connection = std::make_shared<MPI_Connection>(argc, argv, 4);
-    std::shared_ptr<ConnectionInterface>connectionP = std::make_shared<MPI_Connection>(argc, argv, 2);
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection->getDistributedClientId());
 
     ConsumerProducerQueue buffer(connection, 5);
     ConsumerProducerQueue buffer2(connection, 5);
-    ConsumerProducerQueue buffer3(connectionP, 5);
 
     if (buffer.isProducer()) {
         for (int i = 0; i < 1000; i++) {
             buffer.produce(i);
-            buffer2.produce(i);
-            buffer3.produce(i);
         }
     }
     else {
         for (int i = 0; i < 1000; i++) {
-            buffer.consume();
             buffer2.consume();
-            buffer3.consume();
         }
     }
     std::thread endThread(&TestBuffer::endCommunication, &buffer);
     std::thread endThread2(&TestBuffer::endCommunication, &buffer2);
-    std::thread endThread3(&TestBuffer::endCommunication, &buffer3);
     endThread.join();
     endThread2.join();
-    endThread3.join();
 }
 
 int main(int argc, char *argv[]) {
     //test1(argc, argv);
     test2(argc, argv);
 
+    MPI_Connection::endConnection();
     return 0;
 }

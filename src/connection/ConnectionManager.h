@@ -47,7 +47,7 @@ public:
 
     void sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data = "");
     void sendUnLockMessages(std::string dataToSend);
-    void sendUnLockAndWaitMessages();
+    int sendUnLockAndWaitMessages();
     void freeRequests();
     void signalIfAllUnlocksReceived();
     void signalIfAllResponsesReceived(int requestClock);
