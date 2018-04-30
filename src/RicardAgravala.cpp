@@ -1,7 +1,3 @@
-//
-// Created by ola on 25.04.18.
-//
-
 #include <iostream>
 #include "RicardAgravala.h"
 
@@ -42,8 +38,7 @@ int RicardAgravala::getNotAnsweredRepliesCount(int clock) {
     myRequest myRequest = getMyNotFulfilledRequest();
     if (clock == myRequest.clock) {
         return myRequest.answerCounter;
-    }
-    else return -1;
+    } else return -1;
 }
 
 int RicardAgravala::getLamportClock() {
@@ -97,4 +92,3 @@ int RicardAgravala::getLamportClockOfLastReceivedUnlock() {
 void RicardAgravala::setLamportClockOfLastReceivedUnlock(int newLamport) {
     lamportClockOfLastReceivedUnlock = newLamport;
 }
-

@@ -1,7 +1,3 @@
-//
-// Created by ola on 25.04.18.
-//
-
 #ifndef NPR_MONITOR_RICARDAGRAVALA_H
 #define NPR_MONITOR_RICARDAGRAVALA_H
 
@@ -20,9 +16,15 @@ public:
     struct myRequest {
         int clock = -1;
         int answerCounter = -1;
+
         myRequest() {}
+
         myRequest(int clock, int answerCounter) : clock(clock), answerCounter(answerCounter) {}
-        int decrementCounter() {answerCounter--; return answerCounter;}
+
+        int decrementCounter() {
+            answerCounter--;
+            return answerCounter;
+        }
     };
 
 private:
@@ -37,29 +39,40 @@ private:
 
 public:
     int getLamportClock();
+
     bool updateLamportClock();
+
     bool updateLamportClock(int newValue);
 
     void setMyNotFulfilledRequest(myRequest request);
+
     void setMyNotFulfilledRequest(std::shared_ptr<Message> message, int counter);
+
     myRequest getMyNotFulfilledRequest();
+
     int getNotAnsweredRepliesCount(int clock);
 
     void addReceivedRequestToQueue(Message *msg);
+
     Message removeReceivedRequestFromQueue();
+
     bool isRequestsFromOthersQueueEmpty();
 
     State getState();
+
     void changeState(State state);
 
     bool decrementReplyCounter(int messageClock);
 
     void incrementResponsesSentByMeCounter();
-    void decrementResponsesSentByMeCounter();
-    int getResponsesSentByMeCounter();
-    int getLamportClockOfLastReceivedUnlock();
-    void setLamportClockOfLastReceivedUnlock(int newLamport);
 
+    void decrementResponsesSentByMeCounter();
+
+    int getResponsesSentByMeCounter();
+
+    int getLamportClockOfLastReceivedUnlock();
+
+    void setLamportClockOfLastReceivedUnlock(int newLamport);
 
 };
 

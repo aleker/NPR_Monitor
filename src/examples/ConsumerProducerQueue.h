@@ -18,8 +18,7 @@ private:
             int value = bufferQueue.back();
             ss << value;
             return ss.str();
-        }
-        else {
+        } else {
             return "";
         }
     }
@@ -33,14 +32,14 @@ private:
         if (value == "") {
             assert(!bufferQueue.empty());
             bufferQueue.pop();             // value consumed
-        }
-        else
+        } else
             bufferQueue.push(std::stoi(value));        // value produced
         print_queue(bufferQueue, "AAA odebrane");
     }
 
 public:
-    ConsumerProducerQueue(std::shared_ptr<ConnectionInterface>connection, int maxSize) : DistributedMonitor(connection), maxSize(maxSize) {
+    ConsumerProducerQueue(std::shared_ptr<ConnectionInterface> connection, int maxSize) : DistributedMonitor(
+            connection), maxSize(maxSize) {
         d_cvMap["id1"] = std::make_shared<DistributedConditionVariable>("id1", d_mutex);
     }
 
@@ -49,7 +48,7 @@ public:
     }
 
     bool isProducer() {
-        return (getDistributedId() == 0) ;
+        return (getDistributedId() == 0);
     }
 
     void print_queue(std::queue<int> q, std::string logMes) {
@@ -90,7 +89,7 @@ public:
     }
 
     bool isFull() const {
-        return (int)bufferQueue.size() >= maxSize;
+        return (int) bufferQueue.size() >= maxSize;
     }
 
     bool isEmpty() const {

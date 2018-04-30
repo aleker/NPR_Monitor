@@ -1,8 +1,8 @@
 #include <iostream>
 #include "DistributedMonitor.h"
 
-DistributedMonitor::DistributedMonitor(std::shared_ptr<ConnectionInterface>connection) :
-    connectionManager(std::make_shared<ConnectionManager>(connection)) {
+DistributedMonitor::DistributedMonitor(std::shared_ptr<ConnectionInterface> connection) :
+        connectionManager(std::make_shared<ConnectionManager>(connection)) {
     this->d_mutex = std::make_shared<DistributedMutex>(this->connectionManager);
     this->listenThread = std::thread(&DistributedMonitor::listen, this);
 }
@@ -18,7 +18,7 @@ DistributedMonitor::~DistributedMonitor() {
 
 void DistributedMonitor::listen() {
     Message message;
-    while(!connectionManager->receivedAllCommunicationEndMessages()) {
+    while (!connectionManager->receivedAllCommunicationEndMessages()) {
         if (connectionManager->tryToReceiveMessage(Message::MessageType::LOCK_MTX)) {
             message = connectionManager->receiveMessage(Message::MessageType::LOCK_MTX);
             reactForLockRequest(&message);
@@ -61,11 +61,10 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
                     and receivedMessage->getSendersLocalId() < connectionManager->getLocalClientId())) {
                 // SEND LOCK_RESPONSE NOW!
                 connectionManager->sendLockResponse(receivedMessage->getSendersDistributedId(),
-                                 receivedMessage->getSendersLocalId(),
-                                 receivedMessage->getSendersClock());
+                                                    receivedMessage->getSendersLocalId(),
+                                                    receivedMessage->getSendersClock());
                 d_mutex->setLastRequestThatWeResponsedClock(receivedMessage->getSendersClock());
-            }
-            else {
+            } else {
                 // we are better
                 connectionManager->algorithm.addReceivedRequestToQueue(receivedMessage);
             }
@@ -77,7 +76,9 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
         }
         default: {
             // NOT NEEDED: SEND LOCK_RESPONSE NOW!
-            connectionManager->sendLockResponse(receivedMessage->getSendersDistributedId(), receivedMessage->getSendersLocalId(), receivedMessage->getSendersClock());
+            connectionManager->sendLockResponse(receivedMessage->getSendersDistributedId(),
+                                                receivedMessage->getSendersLocalId(),
+                                                receivedMessage->getSendersClock());
             d_mutex->setLastRequestThatWeResponsedClock(receivedMessage->getSendersClock());
             break;
         }
@@ -87,7 +88,8 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
 
 void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
     // decrement response counter
-    bool responseForMyCurrentRequest = connectionManager->algorithm.decrementReplyCounter(receivedMessage->getRequestClock());
+    bool responseForMyCurrentRequest = connectionManager->algorithm.decrementReplyCounter(
+            receivedMessage->getRequestClock());
     int count = connectionManager->algorithm.getNotAnsweredRepliesCount(receivedMessage->getRequestClock());
     std::stringstream str;
     str << "Responses counter: " << count;
@@ -104,7 +106,8 @@ void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
 
 void DistributedMonitor::reactForUnlock(Message *receivedMessage) {
     // send received unlock confirmation
-    connectionManager->sendResponse(receivedMessage->getSendersDistributedId(), receivedMessage->getSendersLocalId(), receivedMessage->getSendersClock());
+    connectionManager->sendResponse(receivedMessage->getSendersDistributedId(), receivedMessage->getSendersLocalId(),
+                                    receivedMessage->getSendersClock());
 
     // decrement required unlocks counter
     connectionManager->algorithm.decrementResponsesSentByMeCounter();
@@ -125,7 +128,7 @@ void DistributedMonitor::reactForWait(Message *receivedMessage) {
     connectionManager->algorithm.decrementResponsesSentByMeCounter();
 
     d_mutex->addSenderToWaitThreadList(receivedMessage->getSendersLocalId(), receivedMessage->getSendersDistributedId(),
-                              receivedMessage->getRequestClock(), receivedMessage->getSendersClock());
+                                       receivedMessage->getRequestClock(), receivedMessage->getSendersClock());
 
     // notify if all unlocks received
     connectionManager->signalIfAllUnlocksReceived();
@@ -162,6 +165,7 @@ void DistributedMonitor::log(std::string log) {
 void DistributedMonitor::endCommunication2() {
     connectionManager->endConnection();
 }
+
 void DistributedMonitor::endCommunication() {
     this->endingThread = std::thread(&DistributedMonitor::endCommunication2, this);
 }
@@ -169,19 +173,3 @@ void DistributedMonitor::endCommunication() {
 void DistributedMonitor::destruct() {
     this->endingThread.join();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

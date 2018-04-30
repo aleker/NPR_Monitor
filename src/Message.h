@@ -3,15 +3,12 @@
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/shared_ptr.hpp>
-#include <boost/archive/text_oarchive.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 
 #include <sstream>
-#include <boost/archive/text_iarchive.hpp>
 
 const int NOT_SET = -1;
 // TODO message not bigger than MAX_MSG_SIZE
@@ -23,6 +20,7 @@ private:
     * When inheriting you have to produce serialization mechanism to your class.
     */
     friend class boost::serialization::access;
+
     template<class Archive>
     void serialize(Archive &archive, const unsigned int version) {
         /*
@@ -37,13 +35,14 @@ private:
         archive & sendersClock;
         archive & data;
     }
+
     /*
     *
     */
 
     int sendersDistributedId = NOT_SET;
     int sendersLocalId = NOT_SET;
-    int messageType = MessageType ::LOCK_MTX;
+    int messageType = MessageType::LOCK_MTX;
     int messageTypeId = NOT_SET;
     int receiversDistributedId = NOT_SET;
     int requestClock = NOT_SET;
@@ -61,6 +60,7 @@ public:
     };
 
     Message() = default;
+
     Message(int sendersDistributedId, int sendersLocalId, int messageType, int gotRequestClock, std::string data) :
             sendersDistributedId(sendersDistributedId),
             sendersLocalId(sendersLocalId),
@@ -69,13 +69,13 @@ public:
             data(data) {}
 
     Message(int sendersDistributedId, int sendersLocalId, int messageType, int gotRequestClock) :
-            Message(sendersDistributedId, sendersLocalId, messageType, gotRequestClock, ""){}
+            Message(sendersDistributedId, sendersLocalId, messageType, gotRequestClock, "") {}
 
     Message(int sendersDistributedId, int sendersLocalId, int messageType, std::string data) :
-            Message(sendersDistributedId, sendersLocalId, messageType, NOT_SET, data){}
+            Message(sendersDistributedId, sendersLocalId, messageType, NOT_SET, data) {}
 
     Message(int sendersDistributedId, int sendersLocalId, int messageType) :
-            Message(sendersDistributedId, sendersLocalId, messageType, NOT_SET, ""){}
+            Message(sendersDistributedId, sendersLocalId, messageType, NOT_SET, "") {}
 
     int getSendersClock() const {
         return sendersClock;

@@ -1,12 +1,7 @@
-//
-// Created by ola on 27.04.18.
-//
-
 #include <iostream>
-#include <thread>
 #include "ConnectionManager.h"
 
-ConnectionManager::ConnectionManager(std::shared_ptr<ConnectionInterface>connection) : connection(connection) {
+ConnectionManager::ConnectionManager(std::shared_ptr<ConnectionInterface> connection) : connection(connection) {
     this->localClientId = this->connection->addNewLocalClient() * clientIdStep;
     std::stringstream str;
     str << "./log" << connection->getUniqueConnectionNo() << ".txt";
@@ -52,7 +47,7 @@ int ConnectionManager::sendMessageOnBroadcast(std::shared_ptr<Message> message, 
     int clientsCount = connection->getDistributedClientsCount() * connection->getLocalClientsCount();
     if (waitForReply)
         algorithm.setMyNotFulfilledRequest(std::make_shared<Message>(*message), (clientsCount - 1));
-    for (int globalId = 0; globalId < connection->getDistributedClientsCount(); globalId ++) {
+    for (int globalId = 0; globalId < connection->getDistributedClientsCount(); globalId++) {
         for (int localIdIndex = 1; localIdIndex <= this->connection->getLocalClientsCount(); localIdIndex++) {
             int localId = localIdIndex * clientIdStep;
             if (getDistributedClientId() == globalId and getLocalClientId() == localId) continue;
@@ -88,7 +83,8 @@ int ConnectionManager::sendUnLockMessages(std::string dataToSend) {
 
 int ConnectionManager::sendUnLockAndWaitMessages() {
     std::shared_ptr<Message> msg = std::make_shared<Message>
-            (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::UNLOCK_MTX_WAIT, algorithm.getMyNotFulfilledRequest().clock);
+            (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::UNLOCK_MTX_WAIT,
+             algorithm.getMyNotFulfilledRequest().clock);
     return this->sendMessageOnBroadcast(msg, false);
 }
 
@@ -123,7 +119,7 @@ bool ConnectionManager::tryToReceiveMessage(int messageType) {
 
 std::string ConnectionManager::messageTypeToString(int messageType) {
     std::string typeString;
-    switch(messageType) {
+    switch (messageType) {
         case Message::MessageType::SIGNAL : {
             typeString = "SIGNAL";
             break;
@@ -183,8 +179,7 @@ int ConnectionManager::incrementThreadsThatWantToEndCommunicationCounter() {
 }
 
 bool ConnectionManager::receivedAllCommunicationEndMessages() {
-    int count = connection->getDistributedClientsCount() * connection-> getLocalClientsCount();
-//    count = connection->getDistributedClientsCount();
+    int count = connection->getDistributedClientsCount() * connection->getLocalClientsCount();
     return (threadsThatWantToEndCommunicationCounter >= count);
 }
 
@@ -202,6 +197,3 @@ void ConnectionManager::endConnection() {
         cvMap["end"].wait(lock);
     };
 }
-
-
-

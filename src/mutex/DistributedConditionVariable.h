@@ -4,7 +4,6 @@
 #include <mutex>
 #include <condition_variable>
 #include <memory>
-#include <utility>
 #include "DistributedMutex.h"
 #include "../connection/ConnectionManager.h"
 

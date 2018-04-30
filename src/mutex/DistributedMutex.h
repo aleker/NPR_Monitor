@@ -17,10 +17,12 @@ public:
         int distributedId = -1;
         int originalRequestClock = -1;
         int waitMessageClock = -1;
-        WaitInfo(int localId, int distributedId,  int originalRequestClock, int waitMessageClock) :
+
+        WaitInfo(int localId, int distributedId, int originalRequestClock, int waitMessageClock) :
                 localId(localId), distributedId(distributedId), originalRequestClock(originalRequestClock),
                 waitMessageClock(waitMessageClock) {}
     };
+
     std::shared_ptr<ConnectionManager> connectionManager;
     std::vector<WaitInfo> waitingThreadsVector;
     std::mutex waitingThreadsVectorMutex;
@@ -38,7 +40,8 @@ public:
         if (prefered) requestClockWithPreference = getLastRequestThatWeResponsedClock() + 1;
         connectionManager->algorithm.changeState(RicardAgravala::State::WAITING_FOR_REPLIES);
         std::shared_ptr<Message> msg = std::make_shared<Message>
-                (connectionManager->getDistributedClientId(), connectionManager->getLocalClientId(), Message::MessageType::LOCK_MTX);
+                (connectionManager->getDistributedClientId(), connectionManager->getLocalClientId(),
+                 Message::MessageType::LOCK_MTX);
         int lastSentLockClock = connectionManager->sendMessageOnBroadcast(msg, true, requestClockWithPreference);
         stateMutex.unlock();
 
@@ -60,7 +63,7 @@ public:
 
         // NOW IN CRITICAL SECTION
         std::stringstream str;
-        str << "---CRITICAL SECTION : START--- ("  << lastSentLockClock << ")";
+        str << "---CRITICAL SECTION : START--- (" << lastSentLockClock << ")";
         connectionManager->log(str.str());
         stateMutex.lock();
         connectionManager->algorithm.changeState(RicardAgravala::State::IN_CRITICAL_SECTION);
@@ -88,7 +91,7 @@ public:
         // send responses from requestsFromOthersQueue:
         stateMutex.lock();
         std::stringstream str;
-        str << "--- GOT ALL CONFIRMATIONS ("  << lastSentLockClock << ") ---";
+        str << "--- GOT ALL CONFIRMATIONS (" << lastSentLockClock << ") ---";
         connectionManager->log(str.str());
         connectionManager->freeRequests();
         connectionManager->algorithm.changeState(RicardAgravala::State::FREE);
@@ -107,13 +110,14 @@ public:
 
     void removeThisThreadFromWaitingList(int localId, int distributedId) {
         for (unsigned int i = 0; i < waitingThreadsVector.size(); i++) {
-            if (waitingThreadsVector.at(i).localId == localId && waitingThreadsVector.at(i).distributedId == distributedId) {
+            if (waitingThreadsVector.at(i).localId == localId &&
+                waitingThreadsVector.at(i).distributedId == distributedId) {
                 waitingThreadsVector.erase(waitingThreadsVector.begin() + i);
             }
         }
     }
 
-    std::mutex* getLocalMutex() {
+    std::mutex *getLocalMutex() {
         return &l_mutex;
     }
 

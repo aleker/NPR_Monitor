@@ -17,7 +17,7 @@ private:
     int protected_values[2] = {0, 0};
 
 public:
-    explicit TestBuffer(std::shared_ptr<ConnectionInterface>connection)
+    explicit TestBuffer(std::shared_ptr<ConnectionInterface> connection)
             : DistributedMonitor(connection) {}
 
     ~TestBuffer() {
@@ -35,7 +35,7 @@ public:
         std::random_device rd;
         int i = getDistributedId();
         int randVal = rd();
-        this->protected_values[i]+= (randVal);
+        this->protected_values[i] += (randVal);
         /*
          * prepareDataToSend() - REQUIRED after critical section, between d_lock() and d_unlock()
          */
@@ -56,7 +56,7 @@ public:
 
     void printProtectedValues() {
         std::stringstream str;
-        for (int i = 0; i < 2 ; i++) {
+        for (int i = 0; i < 2; i++) {
             str << " ,val[" << i << "] =" << this->protected_values[i];
         }
         log(str.str());
@@ -82,17 +82,22 @@ public:
 
 /*
  * USAGE EXAMPLE
+ * // 1) CREATE CONNECTION
  * MPI_Connection connection(argc, argv, 4);
  *
+ * // 2) CREATE MONITORS
  * TestBuffer test(&connection);
  * TestBuffer test2(&connection);
  *
+ * // 3) DO STH
  * test.increment();
  * test2.increment();
- *
  * test.printProtectedValues();
  * test2.printProtectedValues();
  *
+ * // 4) END CONNECTION
+ * test.endCommunication();
+ * test2.endCommunication();
  */
 
 #endif //NPR_MONITOR_TEST_H

@@ -55,8 +55,7 @@ void MPI_Connection::sendMessage(std::shared_ptr<Message> message) {
                  message->getReceiversId(),
                  message->getMessageTypeId(),
                  *MPI_communicator);
-    }
-    else {
+    } else {
         MPI_Send(serializedMessage.c_str(),
                  serializedMessage.length(),
                  MPI_BYTE,
@@ -77,7 +76,7 @@ Message MPI_Connection::receiveMessage(int tag) {
 Message MPI_Connection::receiveMessage(int tag, int sourceId) {
     Message messageObj;
     char receivedMessage[MAX_MSG_SIZE];
-    char* receivedMessagePointer = receivedMessage;
+    char *receivedMessagePointer = receivedMessage;
     MPI_Status senderStatus;
     // blocking receive
     if (isMPICommunicatorNotNull()) {
@@ -88,8 +87,7 @@ Message MPI_Connection::receiveMessage(int tag, int sourceId) {
                  tag,
                  *MPI_communicator,
                  &senderStatus);
-    }
-    else {
+    } else {
         MPI_Recv(receivedMessagePointer,
                  MAX_MSG_SIZE,
                  MPI_BYTE,
@@ -112,9 +110,9 @@ bool MPI_Connection::tryToReceive(int tag, int sourceId) {
     int flag;
     // nonblocking examples for data
     if (isMPICommunicatorNotNull())
-        MPI_Iprobe(sourceId, tag, *MPI_communicator, &flag,  &senderStatus);
+        MPI_Iprobe(sourceId, tag, *MPI_communicator, &flag, &senderStatus);
     else
-        MPI_Iprobe(sourceId, tag, MPI_COMM_WORLD, &flag,  &senderStatus);
+        MPI_Iprobe(sourceId, tag, MPI_COMM_WORLD, &flag, &senderStatus);
     return (flag == 1);
 }
 
@@ -143,5 +141,3 @@ int MPI_Connection::addNewLocalClient() {
 void MPI_Connection::endConnection() {
     MPI_Finalize();
 }
-
-

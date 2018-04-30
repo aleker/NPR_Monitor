@@ -1,7 +1,3 @@
-//
-// Created by ola on 27.04.18.
-//
-
 #ifndef NPR_MONITOR_LOGGER_H
 #define NPR_MONITOR_LOGGER_H
 

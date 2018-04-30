@@ -182,3 +182,5 @@ Jak zrobić zeby wszyscy dostali?
 
 https://gist.github.com/dpressel/de9ea7603fa3f20b55bf
 
+    // TESTING:
+    // MultiprocessDebugHelper::setup(15000 + connection.getDistributedClientId());
