@@ -105,6 +105,9 @@ void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
 }
 
 void DistributedMonitor::reactForUnlock(Message *receivedMessage) {
+    // send received unlock confirmation
+    connectionManager->sendResponse(receivedMessage->getSendersDistributedId(), receivedMessage->getSendersLocalId(), receivedMessage->getSendersClock());
+
     // decrement required unlocks counter
     connectionManager->algorithm.decrementResponsesSentByMeCounter();
 

@@ -9,7 +9,6 @@ class DistributedMutex {
 private:
     std::string protectedData;
     std::mutex l_mutex;
-    int lastSentLockClock = 0;
     int lastRequestThatWeResponsedClock = 0;
 
 public:
@@ -38,7 +37,7 @@ public:
         connectionManager->algorithm.changeState(RicardAgravala::State::WAITING_FOR_REPLIES);
         std::shared_ptr<Message> msg = std::make_shared<Message>
                 (connectionManager->getDistributedClientId(), connectionManager->getLocalClientId(), Message::MessageType::LOCK_MTX);
-        lastSentLockClock = connectionManager->sendMessageOnBroadcast(msg, true, requestClock);
+        int lastSentLockClock = connectionManager->sendMessageOnBroadcast(msg, true, requestClock);
         stateMutex.unlock();
 
         // CRITICAL SECTION ENTRY
@@ -74,10 +73,22 @@ public:
         connectionManager->log("---CRITICAL SECTION : EXIT ---");
 
         // send unlock messages with updated data
-        connectionManager->sendUnLockMessages(protectedData);
+        int lastSentLockClock = connectionManager->sendUnLockMessages(protectedData);
+        // CRITICAL SECTION ENTRY
+        // todo global-lock -> response-lock
+        std::unique_lock<std::mutex> lock(connectionManager->mutexMap["global-lock"]);
+        while (connectionManager->algorithm.getNotAnsweredRepliesCount(lastSentLockClock) > 0) {
+            std::stringstream str;
+            str << "WAIT for CONFIRMATIONS (" << lastSentLockClock << ")";
+            connectionManager->log(str.str());
+            connectionManager->cvMap["receivedAllReplies"].wait(lock);
+        };
 
         // send responses from requestsFromOthersQueue:
         stateMutex.lock();
+        std::stringstream str;
+        str << "--- GOT ALL CONFIRMATIONS ("  << lastSentLockClock << ") ---";
+        connectionManager->log(str.str());
         connectionManager->freeRequests();
         connectionManager->algorithm.changeState(RicardAgravala::State::FREE);
         stateMutex.unlock();
@@ -103,10 +114,6 @@ public:
 
     std::mutex* getLocalMutex() {
         return &l_mutex;
-    }
-
-    int getLastLockClock() {
-        return this->lastSentLockClock;
     }
 
     void setLastRequestThatWeResponsedClock(int lastSentResponseClock) {

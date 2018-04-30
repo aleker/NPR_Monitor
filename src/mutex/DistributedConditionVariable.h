@@ -45,11 +45,11 @@ public:
     }
 
     void d_notifyAll() {
-        connectionManager->log("---NOTIFY ---");
         // TODO remove haveToWait
         haveToWait = false;
         d_mtx->waitingThreadsVectorMutex.lock();
         while (!d_mtx->waitingThreadsVector.empty()) {
+            connectionManager->log("---NOTIFY ---");
             DistributedMutex::WaitInfo wait = d_mtx->waitingThreadsVector.back();
             d_mtx->waitingThreadsVector.pop_back();
             std::shared_ptr<Message> msg = std::make_shared<Message>

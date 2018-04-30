@@ -45,8 +45,9 @@ public:
     bool tryToReceiveMessage(int messageType);
     Message receiveMessage(int messageType);
 
+    void sendResponse(int receiverId, int receiversLocalId, int requestClock, std::string data = "");
     void sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data = "");
-    void sendUnLockMessages(std::string dataToSend);
+    int sendUnLockMessages(std::string dataToSend);
     int sendUnLockAndWaitMessages();
     void freeRequests();
     void signalIfAllUnlocksReceived();

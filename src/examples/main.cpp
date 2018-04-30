@@ -75,8 +75,8 @@ void test2(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-    //test1(argc, argv);
-    test2(argc, argv);
+    test1(argc, argv);
+    // test2(argc, argv);
 
     MPI_Connection::endConnection();
     return 0;

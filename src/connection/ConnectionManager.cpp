@@ -63,7 +63,7 @@ int ConnectionManager::sendMessageOnBroadcast(std::shared_ptr<Message> message, 
     return lamportClock;
 }
 
-void ConnectionManager::sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data) {
+void ConnectionManager::sendResponse(int receiverId, int receiversLocalId, int requestClock, std::string data) {
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (this->getDistributedClientId(),
              this->getLocalClientId(),
@@ -71,14 +71,19 @@ void ConnectionManager::sendLockResponse(int receiverId, int receiversLocalId, i
              requestClock,
              data);
     msg->setReceiversId(receiverId, receiversLocalId);
-    algorithm.incrementResponsesSentByMeCounter();      // we have to get unlock for this response
     this->sendSingleMessage(msg, false);
 }
 
-void ConnectionManager::sendUnLockMessages(std::string dataToSend) {
+
+void ConnectionManager::sendLockResponse(int receiverId, int receiversLocalId, int requestClock, std::string data) {
+    algorithm.incrementResponsesSentByMeCounter();      // we have to get unlock for this response
+    sendResponse(receiverId, receiversLocalId, requestClock, data);
+}
+
+int ConnectionManager::sendUnLockMessages(std::string dataToSend) {
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (this->getDistributedClientId(), this->getLocalClientId(), Message::MessageType::UNLOCK_MTX, dataToSend);
-    this->sendMessageOnBroadcast(msg, false);
+    return this->sendMessageOnBroadcast(msg, true);
 }
 
 int ConnectionManager::sendUnLockAndWaitMessages() {
