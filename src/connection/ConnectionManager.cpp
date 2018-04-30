@@ -189,7 +189,7 @@ bool ConnectionManager::receivedAllCommunicationEndMessages() {
 }
 
 void ConnectionManager::endConnection() {
-    log("SEND CONNECTION END");
+    log("--- SEND CONNECTION END ---");
     incrementThreadsThatWantToEndCommunicationCounter();
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (getDistributedClientId(), getLocalClientId(), Message::MessageType::COMMUNICATION_END);
@@ -198,7 +198,7 @@ void ConnectionManager::endConnection() {
     while (!receivedAllCommunicationEndMessages()) {
         std::stringstream str;
         str << "WAIT for CONNECTION END (" << clock << ")";
-        log(str.str());
+        // log(str.str());
         cvMap["end"].wait(lock);
     };
 }

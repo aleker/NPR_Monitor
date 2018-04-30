@@ -14,6 +14,7 @@
 class DistributedMonitor {
 private:
     std::thread listenThread;
+    std::thread endingThread;
     std::shared_ptr<ConnectionManager> connectionManager;
 
     void listen();
@@ -23,6 +24,8 @@ private:
     void reactForWait(Message * receivedMessage);
     void reactForSignalMessage(Message * receivedMessage);
     void reactForCommunicationEndMessage();
+
+    void endCommunication2();
 
 protected:
     std::shared_ptr<DistributedMutex> d_mutex;
@@ -39,6 +42,7 @@ public:
     ~DistributedMonitor();
     void prepareDataToSend();
     void endCommunication();
+    void destruct();
 };
 
 

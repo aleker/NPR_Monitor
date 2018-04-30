@@ -18,7 +18,7 @@ void test1(int argc, char *argv[]) {
     TestBuffer test4(connection);
 
     // TEST MULTITHREADING
-    int loopsCount = 2000;
+    int loopsCount = 400;
     while(loopsCount > 0) {
         test.increment();
         test2.increment();
@@ -40,14 +40,10 @@ void test1(int argc, char *argv[]) {
     std::this_thread::sleep_for(sec);
     test3.printProtectedValues();
 
-    std::thread endThread(&TestBuffer::endCommunication, &test);
-    std::thread endThread2(&TestBuffer::endCommunication, &test2);
-    std::thread endThread3(&TestBuffer::endCommunication, &test3);
-    std::thread endThread4(&TestBuffer::endCommunication, &test4);
-    endThread.join();
-    endThread2.join();
-    endThread3.join();
-    endThread4.join();
+    test.endCommunication();
+    test2.endCommunication();
+    test3.endCommunication();
+    test4.endCommunication();
 }
 
 void test2(int argc, char *argv[]) {
@@ -68,23 +64,21 @@ void test2(int argc, char *argv[]) {
     else {
         for (int i = 0; i < howManyProduce/2; i++) {
             // consume with delay to test WAIT/NOTIFY
-            std::chrono::seconds sec = std::chrono::seconds(3);
-            std::this_thread::sleep_for(sec);
+            //std::chrono::seconds sec = std::chrono::seconds(3);
+            //std::this_thread::sleep_for(sec);
             consumer.consume();
             consumer2.consume();
         }
     }
-    std::thread endThread(&TestBuffer::endCommunication, &producer);
-    std::thread endThread2(&TestBuffer::endCommunication, &consumer);
-    std::thread endThread3(&TestBuffer::endCommunication, &consumer2);
-    endThread.join();
-    endThread2.join();
-    endThread3.join();
+
+    producer.endCommunication();
+    consumer.endCommunication();
+    consumer2.endCommunication();
 }
 
 int main(int argc, char *argv[]) {
-    //test1(argc, argv);
-    test2(argc, argv);
+    test1(argc, argv);
+    //test2(argc, argv);
 
     MPI_Connection::endConnection();
     return 0;

@@ -20,7 +20,9 @@ public:
     explicit TestBuffer(std::shared_ptr<ConnectionInterface>connection)
             : DistributedMonitor(connection) {}
 
-    virtual ~TestBuffer() {}
+    ~TestBuffer() {
+        destruct();
+    }
 
     void increment() {
         /*

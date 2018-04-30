@@ -159,8 +159,15 @@ void DistributedMonitor::log(std::string log) {
     connectionManager->log(log);
 }
 
-void DistributedMonitor::endCommunication() {
+void DistributedMonitor::endCommunication2() {
     connectionManager->endConnection();
+}
+void DistributedMonitor::endCommunication() {
+    this->endingThread = std::thread(&DistributedMonitor::endCommunication2, this);
+}
+
+void DistributedMonitor::destruct() {
+    this->endingThread.join();
 }
 
 

@@ -45,7 +45,7 @@ public:
     }
 
     ~ConsumerProducerQueue() {
-        endCommunication();
+        destruct();
     }
 
     bool isProducer() {
