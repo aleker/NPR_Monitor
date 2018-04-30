@@ -24,13 +24,12 @@ public:
     void d_wait() {
         // SEND MESSAGE WITH CHANGED DATA AND LEAVE CRITICAL SECTION
         connectionManager->log("---CRITICAL SECTION : EXIT (WAIT) ---");
-        haveToWait = true;
 
+        d_mtx->stateMutex.lock();
         // send unlock messages with wait info (save clock of this wait)
         connectionManager->sendUnLockAndWaitMessages();
-
+        haveToWait = true;      // TODO ??
         // send responses from requestsFromOthersQueue:
-        d_mtx->stateMutex.lock();
         connectionManager->freeRequests();
         connectionManager->algorithm.changeState(RicardAgravala::State::FREE);
         d_mtx->stateMutex.unlock();

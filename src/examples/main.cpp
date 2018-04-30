@@ -50,7 +50,7 @@ void test2(int argc, char *argv[]) {
     ConsumerProducerQueue consumer(connection, 5);
     ConsumerProducerQueue consumer2(connection, 5);
 
-    int howManyProduce = 1000;
+    int howManyProduce = 3000;
     if (producer.isProducer()) {
         for (int i = 0; i < howManyProduce; i++) {
             producer.produce(i);

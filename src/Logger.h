@@ -14,8 +14,8 @@ private:
     std::mutex logMtx;
 
     void setupLogFile(std::string fileName) {
-        // fclose(fopen(fileName.c_str(), "w"));
-        // freopen(fileName.c_str(), "a+", stdout);
+//         fclose(fopen(fileName.c_str(), "w"));
+//         freopen(fileName.c_str(), "a+", stdout);
     }
 
 public:
