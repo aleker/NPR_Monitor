@@ -31,17 +31,19 @@ public:
 
     ~DistributedMutex() {}
 
-    void d_lock(int requestClock = -1) {
+    void d_lock(bool prefered = false) {
         // SEND REQUEST FOR CRITICAL SECTION
         stateMutex.lock();
+        int requestClockWithPreference = -1;
+        if (prefered) requestClockWithPreference = getLastRequestThatWeResponsedClock() + 1;
         connectionManager->algorithm.changeState(RicardAgravala::State::WAITING_FOR_REPLIES);
         std::shared_ptr<Message> msg = std::make_shared<Message>
                 (connectionManager->getDistributedClientId(), connectionManager->getLocalClientId(), Message::MessageType::LOCK_MTX);
-        int lastSentLockClock = connectionManager->sendMessageOnBroadcast(msg, true, requestClock);
+        int lastSentLockClock = connectionManager->sendMessageOnBroadcast(msg, true, requestClockWithPreference);
         stateMutex.unlock();
 
         // CRITICAL SECTION ENTRY
-        std::unique_lock<std::mutex> lock(connectionManager->mutexMap["global-lock"]);
+        std::unique_lock<std::mutex> lock(connectionManager->mutexMap["response-lock"]);
         while (connectionManager->algorithm.getNotAnsweredRepliesCount(lastSentLockClock) > 0) {
             std::stringstream str;
             str << "WAIT for critical section (" << lastSentLockClock << ")";
@@ -75,8 +77,7 @@ public:
         // send unlock messages with updated data
         int lastSentLockClock = connectionManager->sendUnLockMessages(protectedData);
         // CRITICAL SECTION ENTRY
-        // todo global-lock -> response-lock
-        std::unique_lock<std::mutex> lock(connectionManager->mutexMap["global-lock"]);
+        std::unique_lock<std::mutex> lock(connectionManager->mutexMap["response-lock"]);
         while (connectionManager->algorithm.getNotAnsweredRepliesCount(lastSentLockClock) > 0) {
             std::stringstream str;
             str << "WAIT for CONFIRMATIONS (" << lastSentLockClock << ")";

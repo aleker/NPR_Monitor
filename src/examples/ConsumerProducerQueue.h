@@ -64,7 +64,6 @@ public:
     }
 
     void produce(int request) {
-        request += getDistributedId();
         d_mutex->d_lock();
         while (isFull())
             d_cvMap["id1"]->d_wait();
@@ -81,7 +80,6 @@ public:
         d_mutex->d_lock();
         while (isEmpty())
             d_cvMap["id1"]->d_wait();
-        int request = bufferQueue.front();
         bufferQueue.pop();
 
         producer = false;

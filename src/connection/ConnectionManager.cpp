@@ -111,8 +111,8 @@ void ConnectionManager::signalIfAllResponsesReceived(int requestClock) {
     int count = algorithm.getNotAnsweredRepliesCount(requestClock);
     if (count <= 0) {
         // make sure other thread is waiting on mutex:
-        mutexMap["global-lock"].lock();
-        mutexMap["global-lock"].unlock();
+        mutexMap["response-lock"].lock();
+        mutexMap["response-lock"].unlock();
         cvMap["receivedAllReplies"].notify_all();
     }
 }

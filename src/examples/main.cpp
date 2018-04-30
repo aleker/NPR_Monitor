@@ -55,28 +55,36 @@ void test2(int argc, char *argv[]) {
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection->getDistributedClientId());
 
-    ConsumerProducerQueue buffer(connection, 5);    // for producer
-    ConsumerProducerQueue buffer2(connection, 5);   // for consumer
+    ConsumerProducerQueue producer(connection, 5);
+    ConsumerProducerQueue consumer(connection, 5);
+    ConsumerProducerQueue consumer2(connection, 5);
 
-    if (buffer.isProducer()) {
-        for (int i = 0; i < 1000; i++) {
-            buffer.produce(i);
+    int howManyProduce = 200;
+    if (producer.isProducer()) {
+        for (int i = 0; i < howManyProduce; i++) {
+            producer.produce(i);
         }
     }
     else {
-        for (int i = 0; i < 1000; i++) {
-            buffer2.consume();
+        for (int i = 0; i < howManyProduce/2; i++) {
+            // consume with delay to test WAIT/NOTIFY
+            std::chrono::seconds sec = std::chrono::seconds(3);
+            std::this_thread::sleep_for(sec);
+            consumer.consume();
+            consumer2.consume();
         }
     }
-    std::thread endThread(&TestBuffer::endCommunication, &buffer);
-    std::thread endThread2(&TestBuffer::endCommunication, &buffer2);
+    std::thread endThread(&TestBuffer::endCommunication, &producer);
+    std::thread endThread2(&TestBuffer::endCommunication, &consumer);
+    std::thread endThread3(&TestBuffer::endCommunication, &consumer2);
     endThread.join();
     endThread2.join();
+    endThread3.join();
 }
 
 int main(int argc, char *argv[]) {
-    test1(argc, argv);
-    // test2(argc, argv);
+    //test1(argc, argv);
+    test2(argc, argv);
 
     MPI_Connection::endConnection();
     return 0;

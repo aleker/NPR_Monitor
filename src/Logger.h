@@ -24,7 +24,7 @@ private:
 
 public:
     Logger() {
-        setupLogFile("log.txt");   // /home/ola/CLionProjects/NPR_Monitor/src/
+        setupLogFile("log.txt");
     }
 
     Logger(std::string fileName) {

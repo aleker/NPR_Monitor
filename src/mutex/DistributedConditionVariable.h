@@ -40,16 +40,13 @@ public:
         std::unique_lock<std::mutex> lock(*d_mtx->getLocalMutex());
         while (haveToWait)
             l_cond.wait(lock);
-//        d_mtx->d_lock(d_mtx->getLastLockClock());
-        d_mtx->d_lock(d_mtx->getLastRequestThatWeResponsedClock() + 1);
+        d_mtx->d_lock(true);
     }
 
     void d_notifyAll() {
-        // TODO remove haveToWait
         haveToWait = false;
         d_mtx->waitingThreadsVectorMutex.lock();
         while (!d_mtx->waitingThreadsVector.empty()) {
-            connectionManager->log("---NOTIFY ---");
             DistributedMutex::WaitInfo wait = d_mtx->waitingThreadsVector.back();
             d_mtx->waitingThreadsVector.pop_back();
             std::shared_ptr<Message> msg = std::make_shared<Message>
@@ -57,10 +54,13 @@ public:
                      Message::MessageType::SIGNAL, wait.waitMessageClock, id_name);
             msg->setReceiversId(wait.distributedId, wait.localId);
             connectionManager->sendSingleMessage(msg, false);
+            std::stringstream str;
+            str << "---NOTIFY " << wait.localId << ":" << wait.distributedId << " ---";
+            connectionManager->log(str.str());
         }
         d_mtx->waitingThreadsVectorMutex.unlock();
 
-        // notify locally!
+        // notify locally second thread
         l_notify();
     }
 
@@ -69,7 +69,6 @@ public:
         haveToWait = false;
         lock.unlock();
         l_cond.notify_all();
-        connectionManager->log("Notified locally");
     }
 
     std::string getIdName() {

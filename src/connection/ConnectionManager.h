@@ -33,7 +33,6 @@ public:
 
     virtual ~ConnectionManager();
 
-    // TODO private cos?
     void sendMessage(std::shared_ptr<Message> message);
     int sendMessageOnBroadcast(std::shared_ptr<Message> message, bool waitForReply, int sendersClock = -1);
     void sendSingleMessage(std::shared_ptr<Message> message, bool waitForReply);

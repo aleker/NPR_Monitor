@@ -28,7 +28,6 @@ protected:
     std::shared_ptr<DistributedMutex> d_mutex;
     std::map<std::string, std::shared_ptr<DistributedConditionVariable>> d_cvMap;
 
-    // TODO delete
     int getDistributedId();
     void log(std::string log);
 
