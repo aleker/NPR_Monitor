@@ -92,10 +92,10 @@ void DistributedMonitor::reactForLockResponse(Message *receivedMessage) {
     int count = connectionManager->algorithm.getNotAnsweredRepliesCount(receivedMessage->getRequestClock());
     std::stringstream str;
     str << "Responses counter: " << count;
-    //connectionManager->log(str.str());
+    //connectionManager->systemLog(str.str());
 
     if (!responseForMyCurrentRequest) {
-        log("Response not for current request!\n");
+        systemLog("Response not for current request!\n");
         return;
     }
 
@@ -134,9 +134,6 @@ void DistributedMonitor::reactForWait(Message *receivedMessage) {
 }
 
 void DistributedMonitor::reactForSignalMessage(Message *receivedMessage) {
-    // TODO remove
-//    std::unique_lock<std::mutex> lock(*d_mutex->getLocalMutex());
-//    lock.unlock();
     std::string cvName = receivedMessage->getData();
     d_cvMap[cvName]->l_notify();
 }
@@ -158,8 +155,12 @@ int DistributedMonitor::getDistributedId() {
     return connectionManager->getDistributedClientId();
 }
 
+void DistributedMonitor::systemLog(std::string log) {
+    connectionManager->systemLog(log, true);
+}
+
 void DistributedMonitor::log(std::string log) {
-    connectionManager->log(log);
+    connectionManager->systemLog(log, false);
 }
 
 void DistributedMonitor::endCommunication2() {

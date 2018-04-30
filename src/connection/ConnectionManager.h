@@ -62,7 +62,7 @@ public:
 
     void endConnection();
 
-    void log(std::string log);
+    void systemLog(std::string log, bool systemLog = true);
 
 };
 

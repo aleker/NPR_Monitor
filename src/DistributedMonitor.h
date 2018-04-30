@@ -33,6 +33,8 @@ private:
 
     void endCommunication2();
 
+    void systemLog(std::string log);
+
 protected:
     std::shared_ptr<DistributedMutex> d_mutex;
     std::map<std::string, std::shared_ptr<DistributedConditionVariable>> d_cvMap;

@@ -187,6 +187,10 @@ https://gist.github.com/dpressel/de9ea7603fa3f20b55bf
 
 
 README:
+- jak budować projekt:
+    cmake
+    make
+    mpirun -np 2 ./bin/NPR_Monitor
 - wyjaśnić id + możliwość tworzenia logów
 - wyjaśnić jak dziedziczyć:
     - wirtualne metody:

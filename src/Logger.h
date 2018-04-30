@@ -3,7 +3,6 @@
 
 #include <string>
 #include <mutex>
-//#include <iostream>
 #include <fstream>
 
 class Logger {
@@ -16,9 +15,9 @@ private:
     }
 
 public:
-    Logger() {
-        setupLogFile("log.txt");
-    }
+    static bool showSystemLogs;
+
+    Logger() : Logger("systemLog.txt") { }
 
     Logger(std::string fileName) {
         setupLogFile(fileName);
@@ -28,13 +27,21 @@ public:
         log_file.close();
     }
 
-    // TODO additional method for user logs
-    void log(std::string log) {
+    void printLog(std::string log) {
         std::lock_guard<std::mutex> lock(logMtx);
         std::cout << log << "\n";
         log_file << log << "\n";
     }
 
-};
+    // TODO additional method for user logs
+    void systemLog(std::string log) {
+        if (!Logger::showSystemLogs) return;
+        printLog(log);
+    }
 
+    void log(std::string log) {
+        printLog(log);
+    }
+
+};
 #endif //NPR_MONITOR_LOGGER_H

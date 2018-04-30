@@ -6,6 +6,8 @@
 #include "../connection/MPI_Connection.h"
 #include "ConsumerProducerQueue.h"
 
+bool Logger::showSystemLogs = true;
+
 void test1(int argc, char *argv[]) {
     std::shared_ptr<ConnectionInterface> connection = std::make_shared<MPI_Connection>(argc, argv, 4);
     std::shared_ptr<ConnectionInterface> connectionP = std::make_shared<MPI_Connection>(argc, argv, 2);

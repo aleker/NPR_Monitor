@@ -23,7 +23,7 @@ public:
 
     void d_wait() {
         // SEND MESSAGE WITH CHANGED DATA AND LEAVE CRITICAL SECTION
-        connectionManager->log("---CRITICAL SECTION : EXIT (WAIT) ---");
+        connectionManager->systemLog("---CRITICAL SECTION : EXIT (WAIT) ---");
 
         d_mtx->stateMutex.lock();
         // send unlock messages with wait info (save clock of this wait)
@@ -54,7 +54,7 @@ public:
             connectionManager->sendSingleMessage(msg, false);
             std::stringstream str;
             str << "---NOTIFY " << wait.localId << ":" << wait.distributedId << " ---";
-            connectionManager->log(str.str());
+            connectionManager->systemLog(str.str());
         }
         d_mtx->waitingThreadsVectorMutex.unlock();
 

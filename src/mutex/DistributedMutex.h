@@ -50,7 +50,7 @@ public:
         while (connectionManager->algorithm.getNotAnsweredRepliesCount(lastSentLockClock) > 0) {
             std::stringstream str;
             str << "WAIT(resp) for critical section (" << lastSentLockClock << ")";
-            connectionManager->log(str.str());
+            connectionManager->systemLog(str.str());
             connectionManager->cvMap["receivedAllReplies"].wait(lock);
         };
 
@@ -59,7 +59,7 @@ public:
         while (connectionManager->algorithm.getResponsesSentByMeCounter() > 0) {
             std::stringstream str;
             str << "WAIT(unlock) for critical section (" << lastSentLockClock << ")";
-            connectionManager->log(str.str());
+            connectionManager->systemLog(str.str());
             connectionManager->cvMap["receivedAllUnlocks"].wait(lock2);
         }
         lock2.unlock();
@@ -67,7 +67,7 @@ public:
         // NOW IN CRITICAL SECTION
         std::stringstream str;
         str << "---CRITICAL SECTION : START--- (" << lastSentLockClock << ")";
-        connectionManager->log(str.str());
+        connectionManager->systemLog(str.str());
         stateMutex.lock();
         connectionManager->algorithm.changeState(RicardAgravala::State::IN_CRITICAL_SECTION);
         RicardAgravala::myRequest clear;
@@ -78,7 +78,7 @@ public:
 
     void d_unlock() {
         // SEND MESSAGE WITH CHANGED DATA AND LEAVE CRITICAL SECTION
-        connectionManager->log("---CRITICAL SECTION : EXIT ---");
+        connectionManager->systemLog("---CRITICAL SECTION : EXIT ---");
 
         // send unlock messages with updated data
         int lastSentLockClock = connectionManager->sendUnLockMessages(protectedData);
@@ -87,7 +87,7 @@ public:
         while (connectionManager->algorithm.getNotAnsweredRepliesCount(lastSentLockClock) > 0) {
             std::stringstream str;
             str << "WAIT for CONFIRMATIONS (" << lastSentLockClock << ")";
-            connectionManager->log(str.str());
+            connectionManager->systemLog(str.str());
             connectionManager->cvMap["receivedAllReplies"].wait(lock);
         };
 
@@ -95,7 +95,7 @@ public:
         stateMutex.lock();
         std::stringstream str;
         str << "--- GOT ALL CONFIRMATIONS (" << lastSentLockClock << ") ---";
-        connectionManager->log(str.str());
+        connectionManager->systemLog(str.str());
         connectionManager->freeRequests();
         connectionManager->algorithm.changeState(RicardAgravala::State::FREE);
         stateMutex.unlock();

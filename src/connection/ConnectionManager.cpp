@@ -4,7 +4,7 @@
 ConnectionManager::ConnectionManager(std::shared_ptr<ConnectionInterface> connection) : connection(connection) {
     this->localClientId = this->connection->addNewLocalClient() * clientIdStep;
     std::stringstream str;
-    str << "log" << connection->getUniqueConnectionNo() << ".txt";
+    str << "systemLog" << connection->getUniqueConnectionNo() << ".txt";
     this->logger = std::make_unique<Logger>(str.str());
 }
 
@@ -155,22 +155,21 @@ Message ConnectionManager::receiveMessage(int messageType) {
     Message message = connection->receiveMessage(messageType + localClientId);
     algorithm.updateLamportClock(message.getSendersClock());
     std::stringstream str;
-    // TODO remove received log
     str << "received " << typeString << "!: from " << message.getSendersLocalId() << ":" <<
         message.getSendersDistributedId();
-    log(str.str());
-//    algorithm.updateLamportClock(message.getSendersClock());
+    // systemLog(str.str());
     return message;
 }
 
-void ConnectionManager::log(std::string log) {
+void ConnectionManager::systemLog(std::string log, bool systemLog) {
     std::stringstream str;
     str << algorithm.getLamportClock() << " "
         << getLocalClientId() << ":"
         << getDistributedClientId() << ":"
         << getUniqueConnectionNo()
         << ": " << log;
-    logger->log(str.str());
+    if (systemLog) logger->systemLog(str.str());
+    else logger->log(str.str());
 }
 
 int ConnectionManager::incrementThreadsThatWantToEndCommunicationCounter() {
@@ -184,7 +183,7 @@ bool ConnectionManager::receivedAllCommunicationEndMessages() {
 }
 
 void ConnectionManager::endConnection() {
-    log("--- SEND CONNECTION END ---");
+    systemLog("--- SEND CONNECTION END ---");
     incrementThreadsThatWantToEndCommunicationCounter();
     std::shared_ptr<Message> msg = std::make_shared<Message>
             (getDistributedClientId(), getLocalClientId(), Message::MessageType::COMMUNICATION_END);
@@ -193,7 +192,7 @@ void ConnectionManager::endConnection() {
     while (!receivedAllCommunicationEndMessages()) {
         std::stringstream str;
         str << "WAIT for CONNECTION END (" << clock << ")";
-        // log(str.str());
+        // systemLog(str.str());
         cvMap["end"].wait(lock);
     };
 }
