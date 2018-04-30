@@ -29,6 +29,7 @@ public:
 
     ~Logger() {}
 
+    // TODO additional method for user logs
     void log(std::string log) {
         std::lock_guard<std::mutex> lock(logMtx);
         std::cout << log << "\n";

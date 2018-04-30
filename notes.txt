@@ -184,3 +184,20 @@ https://gist.github.com/dpressel/de9ea7603fa3f20b55bf
 
     // TESTING:
     // MultiprocessDebugHelper::setup(15000 + connection.getDistributedClientId());
+
+
+README:
+- wyjaśnić id + możliwość tworzenia logów
+- wyjaśnić jak dziedziczyć:
+    - wirtualne metody:
+        returnDataToSend()
+        manageReceivedData(std::string data)
+    - destruct() w destruktorze
+    - tworzenie zmiennych warunkowych
+- wyjaśnić tworzenie obiektów
+    - stworzenie komunikatora (wyjaśnić jego ostatni parametr)
+    - podanie go jako parametr
+    - na końcu wywołnie endCommunication()
+- wyjaśnić jak nie tworzyc obiektów:
+    - nie ma lokalnej synchronizacji -> komunikacja wyłącznie poprzez MPI
+

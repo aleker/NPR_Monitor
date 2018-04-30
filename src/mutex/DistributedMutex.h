@@ -49,7 +49,7 @@ public:
         std::unique_lock<std::mutex> lock(connectionManager->mutexMap["response-lock"]);
         while (connectionManager->algorithm.getNotAnsweredRepliesCount(lastSentLockClock) > 0) {
             std::stringstream str;
-            str << "WAIT for critical section (" << lastSentLockClock << ")";
+            str << "WAIT(resp) for critical section (" << lastSentLockClock << ")";
             connectionManager->log(str.str());
             connectionManager->cvMap["receivedAllReplies"].wait(lock);
         };
@@ -57,6 +57,9 @@ public:
         // WAIT FOR ALL UNLOCK MESSAGES
         std::unique_lock<std::mutex> lock2(connectionManager->mutexMap["unlock-response"]);
         while (connectionManager->algorithm.getResponsesSentByMeCounter() > 0) {
+            std::stringstream str;
+            str << "WAIT(unlock) for critical section (" << lastSentLockClock << ")";
+            connectionManager->log(str.str());
             connectionManager->cvMap["receivedAllUnlocks"].wait(lock2);
         }
         lock2.unlock();

@@ -9,7 +9,6 @@
 
 class ConnectionManager {
 private:
-    // TODO change step to smaller
     const int clientIdStep = 100;
     int localClientId;
     int threadsThatWantToEndCommunicationCounter = 0;

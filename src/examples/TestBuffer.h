@@ -30,7 +30,7 @@ public:
          */
         d_mutex->d_lock();
         /*
-         * critical section entry
+         * CRITICAL SECTION ENTRY
          */
         std::random_device rd;
         int i = getDistributedId();
