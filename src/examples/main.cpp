@@ -60,7 +60,7 @@ void test2(int argc, char *argv[]) {
     } else {
         for (int i = 0; i < howManyProduce / 2; i++) {
             // consume with delay to test WAIT/NOTIFY
-            std::chrono::seconds sec = std::chrono::seconds(3);
+            std::chrono::seconds sec = std::chrono::seconds(1);
             std::this_thread::sleep_for(sec);
             consumer.consume();
             consumer2.consume();

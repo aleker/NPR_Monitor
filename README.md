@@ -15,7 +15,7 @@ Current directory: *NPR_Monitor*.
 
 ### Building
 ```commandline
-cmake
+cmake .
 make
 ```
 ### Running application
