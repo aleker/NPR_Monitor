@@ -1,11 +1,11 @@
-#ifndef NPR_MONITOR_RICARDAGRAVALA_H
-#define NPR_MONITOR_RICARDAGRAVALA_H
+#ifndef NPR_MONITOR_RICARTAGRAWALA_H
+#define NPR_MONITOR_RICARTAGRAWALA_H
 
 #include <queue>
 #include <mutex>
 #include "Message.h"
 
-class RicardAgravala {
+class RicartAgrawala {
 public:
     enum State {
         FREE,
@@ -77,4 +77,4 @@ public:
 };
 
 
-#endif //NPR_MONITOR_RICARDAGRAVALA_H
+#endif //NPR_MONITOR_RICARTAGRAWALA_H

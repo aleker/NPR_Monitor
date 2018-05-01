@@ -38,7 +38,7 @@ public:
         stateMutex.lock();
         int requestClockWithPreference = -1;
         if (prefered) requestClockWithPreference = getLastRequestThatWeResponsedClock() + 1;
-        connectionManager->algorithm.changeState(RicardAgravala::State::WAITING_FOR_REPLIES);
+        connectionManager->algorithm.changeState(RicartAgrawala::State::WAITING_FOR_REPLIES);
         std::shared_ptr<Message> msg = std::make_shared<Message>
                 (connectionManager->getDistributedClientId(), connectionManager->getLocalClientId(),
                  Message::MessageType::LOCK_MTX);
@@ -69,8 +69,8 @@ public:
         str << "---CRITICAL SECTION : START--- (" << lastSentLockClock << ")";
         connectionManager->systemLog(str.str());
         stateMutex.lock();
-        connectionManager->algorithm.changeState(RicardAgravala::State::IN_CRITICAL_SECTION);
-        RicardAgravala::myRequest clear;
+        connectionManager->algorithm.changeState(RicartAgrawala::State::IN_CRITICAL_SECTION);
+        RicartAgrawala::myRequest clear;
         connectionManager->algorithm.setMyNotFulfilledRequest(clear);
         connectionManager->algorithm.updateLamportClock();      // for readable logs
         stateMutex.unlock();
@@ -97,7 +97,7 @@ public:
         str << "--- GOT ALL CONFIRMATIONS (" << lastSentLockClock << ") ---";
         connectionManager->systemLog(str.str());
         connectionManager->freeRequests();
-        connectionManager->algorithm.changeState(RicardAgravala::State::FREE);
+        connectionManager->algorithm.changeState(RicartAgrawala::State::FREE);
         stateMutex.unlock();
     }
 

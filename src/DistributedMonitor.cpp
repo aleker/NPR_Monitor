@@ -50,8 +50,8 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
     d_mutex->stateMutex.lock();
     int currentState = connectionManager->algorithm.getState();
     switch (currentState) {
-        case RicardAgravala::State::WAITING_FOR_REPLIES: {
-            RicardAgravala::myRequest myRequest = connectionManager->algorithm.getMyNotFulfilledRequest();
+        case RicartAgrawala::State::WAITING_FOR_REPLIES: {
+            RicartAgrawala::myRequest myRequest = connectionManager->algorithm.getMyNotFulfilledRequest();
             if (receivedMessage->getSendersClock() < myRequest.clock
                 or (receivedMessage->getSendersClock() == myRequest.clock
                     and receivedMessage->getSendersDistributedId() < connectionManager->getDistributedClientId())
@@ -69,7 +69,7 @@ void DistributedMonitor::reactForLockRequest(Message *receivedMessage) {
             }
             break;
         }
-        case RicardAgravala::State::IN_CRITICAL_SECTION: {
+        case RicartAgrawala::State::IN_CRITICAL_SECTION: {
             connectionManager->algorithm.addReceivedRequestToQueue(receivedMessage);
             break;
         }

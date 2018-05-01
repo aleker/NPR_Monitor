@@ -4,7 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "ConnectionInterface.h"
-#include "../RicardAgravala.h"
+#include "../RicartAgrawala.h"
 #include "../Logger.h"
 
 class ConnectionManager {
@@ -18,7 +18,7 @@ private:
     std::string messageTypeToString(int messageType);
 
 public:
-    RicardAgravala algorithm;
+    RicartAgrawala algorithm;
     std::map<std::string, std::condition_variable> cvMap;
     std::map<std::string, std::mutex> mutexMap;
 

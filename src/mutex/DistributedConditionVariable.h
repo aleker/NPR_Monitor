@@ -31,7 +31,7 @@ public:
         haveToWait = true;      // TODO ??
         // send responses from requestsFromOthersQueue:
         connectionManager->freeRequests();
-        connectionManager->algorithm.changeState(RicardAgravala::State::FREE);
+        connectionManager->algorithm.changeState(RicartAgrawala::State::FREE);
         d_mtx->stateMutex.unlock();
 
         // wait here!
