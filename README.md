@@ -13,27 +13,27 @@ Building and running project
 ============
 Current directory: *NPR_Monitor*.
 
-###Building
+### Building
 ```commandline
 cmake
 make
 ```
-###Running application
-Exmple of running application on 2 machines (cores).
+### Running application
+Example of running application on 2 machines (cores).
 ```commandline
 mpirun -np 2 ./bin/NPR_Monitor
 ```
 
 Implementing monitor
 ==================
-###Inherit from DistributedMonitor
+### Inherit from DistributedMonitor
 ```
 class ConsumerProducerQueue : public DistributedMonitor {
     (...)
 };
 ```
 
-###Create constructor
+### Create constructor
 
 The only required argument is pointer to `ConnectionInterface` e.g. `MPI_Connection`.
 ```objectivec
@@ -41,7 +41,7 @@ The only required argument is pointer to `ConnectionInterface` e.g. `MPI_Connect
     DistributedMonitor(connection) { }
 ```
 
-###Override virtual functions
+### Oerride virtual functions
 ```objectivec
 void manageReceivedData(std::string receivedData) override { 
     (...) 
@@ -55,7 +55,7 @@ std::string returnDataToSend() override {
 
 ``returnDataToSend`` transforms ready to share data into ``std::string``.
 
-###Call `destruct()` in destructor
+### Call `destruct()` in destructor
 ```objectivec
 ~ConsumerProducerQueue() {
     destruct();
@@ -63,7 +63,7 @@ std::string returnDataToSend() override {
 }
 ```
 
-###Creating condition variables
+### Creating condition variables
 
 All new condition variables (distributed versions) must be elements of ``d_cvMap`` to work properly.
 Every ``DistributedConditionVariable`` has unique name (key in ``d_cvMap``) by which it is identified.
@@ -121,7 +121,7 @@ In consequence, if you use the same object in multiple threads, the synchronizat
 
 Logger
 =====
-###Unique monitor's id
+### Unique monitor's id
 Every declared monitor has unique *id* in distributed system.
 Three elements make up one id e.g. ``100:0:4``. 
 
@@ -132,13 +132,13 @@ In ``MPI_Communication`` it is *MPI_Comm_rank*.
 
 `100` identify monitor in local system. This number grows with step equal 100.
 
-###Logging
-#####System logs
+### Logging
+##### System logs
 To turn off/on system logs (about locking/unlocking and waiting/notifying) 
 you have to set ``bool Logger::showSystemLogs`` to false or true respectively. 
 This is the only setting and it has to appear above ``main`` function.
 
-#####Private logs
+##### Private logs
 If you want to display some information, you can use monitor's ``log(std::string log)`` method.
 
 
