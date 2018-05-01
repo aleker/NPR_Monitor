@@ -74,6 +74,40 @@ Second argument is mutex of type ``DistributedMutex`` on which condition variabl
 d_cvMap["id1"] = std::make_shared<DistributedConditionVariable>("id1", d_mutex);
 ```
 
+### Creating synchronized methods (critical sections)
+```objectivec
+void produce(int item) {
+    // 1)
+    d_mutex->d_lock();
+    /*
+     * CRITICAL SECTION ENTRY
+     */
+    while (isFull()) {
+        // 2)
+        d_cvMap["id1"]->d_wait();
+    }
+    
+    // 3
+    (...)           // do something with item
+    
+    // 4)
+    prepareDataToSend();
+    
+    // 5)
+    d_mutex->d_unlock();
+    
+    // 6)
+    d_cvMap["id1"]->d_notifyAll();
+}
+```
+1) Enter critical section by locking mutex (only one hardcoded mutex per object).
+2) Wait on distributed condition variable (declared in monitor constructor).
+3) Do something with shared data.
+4) ``prepareDataToSend()`` method must be called after data updating (3) but before mutex unlocking (5). 
+It calls ``returnDataToSend()`` method.
+5) Exit critical section.
+6) Notify all waiting nodes.
+
 Creating objects
 =============
 ```objectivec
