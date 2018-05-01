@@ -27,7 +27,7 @@ mpirun -np 2 ./bin/NPR_Monitor
 Implementing monitor
 ==================
 ### Inherit from DistributedMonitor
-```
+```objectivec
 class ConsumerProducerQueue : public DistributedMonitor {
     (...)
 };
@@ -37,7 +37,7 @@ class ConsumerProducerQueue : public DistributedMonitor {
 
 The only required argument is pointer to `ConnectionInterface` e.g. `MPI_Connection`.
 ```objectivec
-    ConsumerProducerQueue(std::shared_ptr<ConnectionInterface> connection) : 
+ConsumerProducerQueue(std::shared_ptr<ConnectionInterface> connection) : 
     DistributedMonitor(connection) { }
 ```
 
