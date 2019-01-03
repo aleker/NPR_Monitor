@@ -11,9 +11,14 @@ Examples of monitor implementations are under ``examples`` directory.
 
 Building and running project
 ============
-Current directory: *NPR_Monitor*.
+
+### Required packages
+```commandline
+sudo apt-get install cmake libblacs-mpi-dev libboost-all-dev
+```
 
 ### Building
+Current directory: *NPR_Monitor*
 ```commandline
 cmake .
 make
